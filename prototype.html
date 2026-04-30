@@ -723,6 +723,91 @@ body {
   margin-top: -8px;
 }
 
+/* ===== Call screen ===== */
+.call-screen {
+  background: linear-gradient(180deg, #d9008d 0%, #5e0e3e 60%, #1c0a14 100%);
+  color: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.call-screen .call-status-bar {
+  height: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 16px 0; font-size: 12px;
+  font-family: 'Roboto', sans-serif; font-weight: 500;
+  color: #fff; flex-shrink: 0;
+}
+.call-info {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  padding-top: 60px;
+}
+.call-avatar {
+  width: 112px; height: 112px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.25);
+}
+.call-avatar svg { width: 64px; height: 36px; }
+.call-name {
+  font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+  font-size: 32px; font-weight: 600; color: #fff;
+}
+.call-status {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; color: rgba(255,255,255,0.85);
+  letter-spacing: 0.3px;
+}
+.call-actions {
+  padding: 0 24px 36px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 32px;
+  flex-shrink: 0;
+}
+.call-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px 32px;
+  width: 100%;
+}
+.call-action {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  cursor: default;
+}
+.call-action-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+.call-action-btn svg { width: 26px; height: 26px; }
+.call-action-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+}
+.call-end-btn {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255,59,59,0.45);
+  transition: transform 0.15s;
+}
+.call-end-btn:hover { transform: scale(1.06); }
+.call-end-btn svg { width: 30px; height: 30px; }
+
 /* Quick-nav (top of viewport) */
 .quick-nav {
   position: fixed;
@@ -1580,7 +1665,7 @@ body {
               <span class="timestamp">10:15 AM</span>
             </div>
             <div class="divider"></div>
-            <div class="chat-cta cta-pink"><span class="chat-cta-text">समस्या बताएं</span></div>
+            <div class="chat-cta cta-pink" data-link="14"><span class="chat-cta-text">समस्या बताएं</span></div>
             <div class="divider"></div>
             <div class="chat-cta" data-open-modal="cancelConfirm"><span class="chat-cta-text">नहीं, बुकिंग कैंसिल करें</span></div>
           </div>
@@ -2180,6 +2265,44 @@ buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिं�
 
 buildTerminalChatScreen('Process Info — Acknowledged', '5', 'भरोसा बनाए रखने के लिए शुक्रिया\n\nहम आपके लिए इंजीनियर ढूंढ रहे हैं।\nमिलते ही आपको तुरंत बता देंगे।');
 
+// Build call screen + complaint-registered chat ack
+(function buildCallAndComplaintScreens() {
+  var firstOption = document.querySelector('.screen.option-screen');
+  if (!firstOption) return;
+  var call = document.createElement('div');
+  call.className = 'screen call-screen';
+  call.dataset.label = 'Calling Wiom';
+  call.innerHTML = ''
+    + '<div class="call-status-bar"><span>04:35 PM</span><span>📶 📡 🔋 50%</span></div>'
+    + '<div class="call-info">'
+    +   '<div class="call-avatar">'
+    +     '<svg viewBox="0 0 24 14" fill="none"><path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.8" fill="none"/></svg>'
+    +   '</div>'
+    +   '<div class="call-name">व्योम</div>'
+    +   '<div class="call-status">Calling…</div>'
+    + '</div>'
+    + '<div class="call-actions">'
+    +   '<div class="call-action-grid">'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5.3-3a5.3 5.3 0 0 1-10.6 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-1.7zM4.27 3 3 4.27l3 3V11a6 6 0 0 0 .31 1.95l1.55-1.55C7.94 11.27 7 11.66 7 11h.34l9.66 9.66 1.27-1.27L4.27 3z"/></svg></div><div class="call-action-label">mute</div></div>'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.4"/><circle cx="6" cy="6" r="1.4"/><circle cx="18" cy="6" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="6" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/><circle cx="12" cy="18" r="1.4"/><circle cx="6" cy="18" r="1.4"/><circle cx="18" cy="18" r="1.4"/></svg></div><div class="call-action-label">keypad</div></div>'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div><div class="call-action-label">speaker</div></div>'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="call-action-label">add</div></div>'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M22 8l-6 4 6 4V8z"/></svg></div><div class="call-action-label">video</div></div>'
+    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div><div class="call-action-label">contacts</div></div>'
+    +   '</div>'
+    +   '<button class="call-end-btn" data-link="15" aria-label="End call"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46l-5.27-.61-2.52 2.52a15.05 15.05 0 0 1-6.59-6.59l2.53-2.53L8.54 3H3.03C2.45 13.18 10.82 21.55 21 20.97v-5.51z" transform="rotate(135 12 12)"/></svg></button>'
+    + '</div>';
+  firstOption.parentNode.insertBefore(call, firstOption);
+})();
+
+buildTerminalChatScreen('Complaint Registered', '6', 'PLACEHOLDER');
+(function customizeComplaintScreen() {
+  var s = document.querySelector('.screen[data-label="Complaint Registered"]');
+  if (!s) return;
+  var t = s.querySelector('#wiomMsgReveal6 .text');
+  if (t) t.innerHTML = 'आपकी शिकायत "नेट ठीक से नहीं चल रहा" दर्ज हो गई है, हमारी टीम इसे जल्द से जल्द ठीक करने में लगी है।<br><br>जैसे ही कोई अपडेट मिलेगा, हम आपको तुरंत बता देंगे।<br><br><strong>टिकट ID:</strong> 662387';
+})();
+
 var screens = document.querySelectorAll('.screen');
 var prevBtn = document.getElementById('prevBtn');
 var nextBtn = document.getElementById('nextBtn');
@@ -2217,6 +2340,7 @@ function show(idx) {
   runTypingReveal('wiomTypingDots3', 'wiomMsgReveal3');
   runTypingReveal('wiomTypingDots4', 'wiomMsgReveal4');
   runTypingReveal('wiomTypingDots5', 'wiomMsgReveal5');
+  runTypingReveal('wiomTypingDots6', 'wiomMsgReveal6');
 
   // Address/reschedule loading auto-transition
   if (screens[current].classList.contains('addr-screen')) startAddressProgress(screens[current]);
@@ -2320,7 +2444,9 @@ var injectByLink = {
   '8': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking — screen 8
   '9': { anchorId: 'addrChatAnchor', position: 'before' },   // address change — lands in screen 10 chat
   '11': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in screen 12 chat
-  '13': { anchorId: 'wiomTypingDots5', position: 'before' }        // process info — lands in screen 13 chat
+  '13': { anchorId: 'wiomTypingDots5', position: 'before' },       // process info — lands in screen 13 chat
+  '14': { anchorId: 'wiomTypingDots6', position: 'before' },       // समस्या बताएं → call → complaint chat
+  '15': { anchorId: 'wiomTypingDots6', position: 'before' }        // end call → complaint chat
 };
 var modalReplyContext = {
   cancelConfirm: { quote: 'व्योम से संपर्क करने के लिए धन्यवाद! अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं...' },
