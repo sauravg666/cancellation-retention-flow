@@ -1,0 +1,2453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiom - Cancellation Flow Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  overflow: hidden;
+}
+
+/* Phone Frame */
+.phone-frame { width: 360px; height: 720px; position: relative; }
+.screen-area { width: 360px; height: 720px; position: relative; overflow: hidden; background: #faf9fc; }
+
+.screen {
+  width: 360px; height: 720px;
+  position: absolute; top: 0; left: 0;
+  opacity: 0; transition: opacity 0.3s ease;
+  pointer-events: none;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.screen.active { opacity: 1; pointer-events: auto; }
+
+/* Status bar (generic, light) */
+.status-bar {
+  height: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 12px;
+  color: #161021;
+  background: transparent;
+  flex-shrink: 0;
+}
+.status-bar .time { font-weight: 600; }
+.status-bar .icons { display: flex; gap: 4px; align-items: center; font-size: 11px; }
+
+/* Navigation */
+.nav-controls {
+  position: fixed; bottom: 30px;
+  display: flex; gap: 16px; align-items: center; z-index: 200;
+}
+.nav-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,0.15); color: white;
+  font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px); transition: all 0.2s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+.screen-counter { color: rgba(255,255,255,0.7); font-size: 14px; min-width: 60px; text-align: center; }
+.screen-label {
+  position: fixed; bottom: 85px;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px; text-align: center; max-width: 300px;
+}
+
+/* ===== HUB SCREEN ===== */
+.hub-screen { background: #ffd888; position: relative; }
+.hub-center {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 50px;
+  padding: 0 24px;
+  width: 100%;
+}
+.hub-title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600; font-size: 32px; line-height: 1.2; color: #000;
+  text-align: center;
+}
+.hub-cta-list {
+  margin-top: 49px;
+  display: flex; flex-direction: column; gap: 18px;
+  padding: 0 16px;
+}
+.hub-cta {
+  width: 328px; height: 76px;
+  background: #444; border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.17);
+  display: flex; align-items: center; justify-content: center;
+  color: #ffd888;
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 700; font-size: 16px; text-align: center;
+  border: none; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hub-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.22); }
+.hub-cta:active { transform: translateY(0); }
+.hub-bottom-glow {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 85px; background: #ffd888;
+  box-shadow: 0 -6px 20px 0 #ffd888;
+  pointer-events: none;
+}
+
+/* ===== BOOKING CONFIRMED CHAT SCREEN ===== */
+.bk { background: #f5f6f7; font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif; }
+
+.bk-status {
+  height: 24px; display: flex; justify-content: space-between; align-items: center;
+  padding: 0 8px; background: #fff; flex-shrink: 0;
+}
+.bk-status .time { font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: #161021; }
+.bk-status .indicators { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #161021; }
+.bk-status svg { width: 16px; height: 16px; }
+
+/* Chat top app bar */
+.bk-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e8e4f0;
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 4px 8px 12px;
+  flex-shrink: 0;
+}
+.bk-wiom-icon {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bk-wiom-icon .ring {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #d9008d;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.bk-wiom-icon .ring svg { width: 24px; height: 14px; }
+.bk-topbar-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bk-topbar-text .name { font-size: 14px; font-weight: 500; color: #161021; line-height: 20px; }
+.bk-topbar-text .status { font-size: 10px; color: #665e75; line-height: 14px; }
+.bk-topbar-actions { display: flex; }
+.bk-icon-btn {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; cursor: pointer;
+}
+.bk-icon-btn svg { width: 24px; height: 24px; color: #161021; }
+
+/* Sticky bar */
+.bk-sticky-wrap { padding: 12px 16px; background: #f5f6f7; flex-shrink: 0; }
+.bk-sticky-card {
+  background: #faf9fc;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 12px;
+  display: flex; align-items: center; gap: 12px;
+  width: 328px;
+}
+.bk-sticky-card .home-icon { width: 24px; height: 24px; flex-shrink: 0; color: #161021; }
+.bk-sticky-card .home-icon svg { width: 24px; height: 24px; }
+.bk-sticky-card .lines { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.bk-sticky-card .heading {
+  font-size: 12px; color: #665e75; line-height: 16px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 176px;
+}
+.bk-sticky-card .subline { display: flex; gap: 4px; align-items: baseline; white-space: nowrap; }
+.bk-sticky-card .subline .label { font-size: 12px; color: #665e75; line-height: 16px; }
+.bk-sticky-card .subline .value { font-size: 16px; font-weight: 600; color: #161021; line-height: 24px; }
+
+/* Chat area */
+.bk-chat {
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px 12px 12px;
+  background: #f5f6f7;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.bk-chat::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* Wiom (left) message */
+.bk-wiom-msg {
+  align-self: flex-start;
+  width: 336px;
+  padding-left: 12px;
+  padding-right: 72px;
+  position: relative;
+}
+.bk-wiom-msg .bubble {
+  background: #ebedf0;
+  border-radius: 12px;
+  padding: 4px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 252px;
+  position: relative;
+}
+.bk-wiom-msg.with-tail .bubble::before {
+  content: '';
+  position: absolute;
+  left: -8px; top: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 8px 8px 0;
+  border-color: transparent #ebedf0 transparent transparent;
+}
+.bk-wiom-msg .content-box {
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+  width: 100%;
+}
+.bk-wiom-msg .text {
+  font-size: 14px; line-height: 20px; color: #161021;
+  white-space: pre-wrap; word-wrap: break-word;
+  max-width: 228px;
+}
+.bk-wiom-msg .timestamp {
+  align-self: flex-end;
+  font-size: 10px; line-height: 1.2; color: #a7a1b2;
+}
+
+/* User (right) reply with quoted Wiom */
+.bk-user-reply {
+  align-self: flex-end;
+  width: 336px;
+  padding-left: 72px; padding-right: 12px;
+  display: flex; justify-content: flex-end;
+  position: relative;
+}
+.bk-user-reply .bubble-outer {
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  display: flex; flex-direction: column; gap: 4px;
+  max-width: 280px;
+  position: relative;
+}
+.bk-user-reply .bubble-outer::after {
+  content: '';
+  position: absolute;
+  right: -8px; top: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent transparent #fff;
+}
+.bk-user-reply .quote {
+  background: #ebedf0;
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+}
+.bk-user-reply .quote .bar {
+  width: 4px; flex-shrink: 0;
+  background: #b6b9bf;
+  border-radius: 8px 0 0 8px;
+}
+.bk-user-reply .quote .quote-content {
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 12px; line-height: 16px;
+  max-width: 224px;
+}
+.bk-user-reply .quote .quote-author { font-weight: 600; color: #161021; }
+.bk-user-reply .quote .quote-text {
+  color: #665e75;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bk-user-reply .reply-content {
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bk-user-reply .reply-text {
+  font-size: 14px; line-height: 20px; color: #161021;
+  max-width: 228px; min-width: 96px;
+  white-space: pre-wrap;
+}
+.bk-user-reply .meta {
+  align-self: flex-end;
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; line-height: 1.2; color: #a7a1b2;
+}
+.bk-user-reply .meta svg { width: 12px; height: 12px; color: #008043; }
+
+/* Chat CTA chips (interactive options inside Wiom bubble) */
+.bk-wiom-msg .chat-cta {
+  background: #ebedf0;
+  padding: 12px 8px;
+  display: flex; justify-content: center; align-items: center;
+  width: 100%;
+}
+.bk-wiom-msg .chat-cta-text {
+  font-size: 14px; font-weight: 500; line-height: 20px;
+  color: #a7a1b2; text-align: center;
+}
+.bk-wiom-msg .divider {
+  height: 1px; background: #d5d8dc; width: 100%;
+}
+
+/* Contact card */
+.bk-contact-card {
+  align-self: flex-start;
+  width: 336px;
+  padding-left: 12px; padding-right: 72px;
+}
+.bk-contact-card .container {
+  background: #ebedf0;
+  border-radius: 12px;
+  padding: 16px 0 12px;
+  display: flex; flex-direction: column; gap: 16px;
+  align-items: center;
+}
+.bk-contact-card .header {
+  display: flex; gap: 12px; align-items: center;
+  padding: 0 16px; width: 100%;
+}
+.bk-contact-card .avatar {
+  width: 40px; height: 40px;
+  border-radius: 24px;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.bk-contact-card .avatar svg { width: 24px; height: 24px; color: #665e75; }
+.bk-contact-card .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.bk-contact-card .info .name { font-size: 14px; font-weight: 600; color: #161021; line-height: 20px; }
+.bk-contact-card .info .number { font-size: 12px; color: #161021; line-height: 16px; }
+.bk-contact-card .footer { width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.bk-contact-card .divider { height: 1px; width: 100%; background: #d5d8dc; }
+.bk-contact-card .save-link {
+  font-size: 14px; font-weight: 500; color: #d9008d;
+  line-height: 20px; cursor: pointer; text-decoration: none;
+}
+
+/* Typing field */
+.bk-typing {
+  background: #f5f6f7;
+  padding: 12px;
+  display: flex; gap: 8px; align-items: flex-end;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.bk-typing .input {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e8e4f0;
+  border-radius: 24px;
+  padding: 12px 16px;
+  display: flex; align-items: center;
+  font-size: 16px; line-height: 24px; color: #a7a1b2;
+  min-height: 48px;
+}
+.bk-typing.has-text .input { color: #161021; }
+.bk-typing .send-btn {
+  width: 48px; height: 48px; flex-shrink: 0;
+  background: #a7a1b2;
+  border-radius: 24px;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.bk-typing.has-text .send-btn { background: #d9008d; }
+.bk-typing .send-btn svg { width: 24px; height: 24px; color: #fff; }
+
+/* Typing variant: chat + keyboard up */
+.bk-typing-bg { background: #f1edf7; }
+
+/* Keyboard */
+.kb {
+  background: #161021;
+  height: 256px;
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.kb-toolbar {
+  height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px; padding: 8px;
+}
+.kb-back {
+  width: 26px; height: 26px;
+  background: #d9008d; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.kb-back svg { width: 16px; height: 16px; }
+.kb-toolbar-icons { display: flex; gap: 29px; align-items: center; color: #d7d3e0; }
+.kb-toolbar-icons svg, .kb-toolbar-icons span { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+.kb-toolbar-divider { width: 1px; height: 22px; background: #d7d3e0; }
+.kb-toolbar-right { display: flex; gap: 21px; align-items: center; color: #d7d3e0; }
+.kb-toolbar-right svg { width: 22px; height: 22px; }
+
+.kb-keys {
+  flex: 1;
+  padding: 4px 4px 8px;
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: center; justify-content: center;
+}
+.kb-row { display: flex; gap: 5px; }
+.kb-key {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  width: 30px; height: 41px;
+  display: flex; align-items: center; justify-content: center;
+  color: #faf9fc;
+  font-family: 'Roboto', sans-serif; font-size: 18px;
+}
+.kb-key.wide { width: 45px; background: rgba(255,255,255,0.1); }
+.kb-key.special-num { width: 45px; background: rgba(255,255,255,0.15); border-radius: 100px; font-size: 12px; font-weight: 500; }
+.kb-key.space { width: 127px; background: rgba(255,255,255,0.1); }
+.kb-key.enter { width: 45px; background: #d9008d; border-radius: 100px; }
+.kb-key.enter svg { width: 18px; height: 18px; color: #fff; }
+.kb-key svg { width: 18px; height: 18px; color: #faf9fc; }
+
+/* Typing-dots bubble (Wiom is typing...) */
+.bk-typing-bubble {
+  align-self: flex-start;
+  width: 336px;
+  padding-left: 12px;
+  padding-right: 72px;
+  position: relative;
+}
+.bk-typing-bubble .bubble {
+  background: #ebedf0;
+  border-radius: 12px;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.bk-typing-bubble.with-tail .bubble::before {
+  content: '';
+  position: absolute;
+  left: -8px; top: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 8px 8px 0;
+  border-color: transparent #ebedf0 transparent transparent;
+}
+.bk-typing-bubble .dots { display: flex; gap: 4px; align-items: center; height: 20px; width: 36px; justify-content: center; }
+.bk-typing-bubble .dots span {
+  width: 7px; height: 7px;
+  background: #665e75;
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite;
+}
+.bk-typing-bubble .dots span:nth-child(2) { animation-delay: 0.2s; }
+.bk-typing-bubble .dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Reveal animation for typed-in Wiom message */
+.bk-wiom-msg.bubble-reveal {
+  animation: bubbleReveal 0.3s ease both;
+}
+@keyframes bubbleReveal {
+  0% { opacity: 0; transform: scale(0.96) translateY(4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Make chat CTAs feel tappable */
+.bk-wiom-msg .chat-cta { cursor: pointer; }
+.bk-wiom-msg .chat-cta:active { background: #dfe2e6; }
+
+/* Pink-emphasis chat CTA (e.g. cancel-booking trigger, call action) */
+.bk-wiom-msg .chat-cta[data-open-modal] .chat-cta-text,
+.bk-wiom-msg .chat-cta.cta-pink .chat-cta-text {
+  color: #d9008d;
+  font-weight: 600;
+}
+
+/* ===== Full-screen modal (process info / stepper) ===== */
+.full-modal {
+  position: absolute;
+  inset: 0;
+  background: #faf9fc;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.full-modal.show { opacity: 1; pointer-events: auto; }
+.full-modal-header {
+  padding: 16px 24px 24px;
+  flex-shrink: 0;
+}
+.full-modal-back {
+  width: 40px; height: 40px;
+  margin: 0 0 16px -8px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent;
+  cursor: pointer;
+  color: #161021;
+}
+.full-modal-back svg { width: 24px; height: 24px; }
+.full-modal-title {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 28px;
+  color: #161021;
+}
+.full-modal-content {
+  flex: 1;
+  padding: 0 24px 16px;
+  overflow-y: auto;
+}
+.full-modal-actions {
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: #faf9fc;
+  border-top: 1px solid #e8e4f0;
+  flex-shrink: 0;
+}
+
+/* Other-reason textarea */
+.reason-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 16px;
+  border: 1.5px solid #e8e4f0;
+  border-radius: 12px;
+  background: #faf9fc;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #161021;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.reason-textarea::placeholder { color: #a7a1b2; }
+.reason-textarea:focus { border-color: #d9008d; }
+.reason-textarea.error { border-color: #d92130; background: #fff5f5; }
+.reason-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 11px;
+}
+.reason-error { color: #d92130; font-weight: 600; display: none; }
+.reason-error.show { display: inline; }
+.reason-counter { color: #665e75; }
+.reason-counter.over { color: #d92130; }
+
+/* Comparison table */
+.compare-table {
+  border: 1px solid #e8e4f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.compare-row {
+  display: grid;
+  grid-template-columns: 92px 1fr 1fr;
+  border-bottom: 1px solid #e8e4f0;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-row.head { background: #f5f6f7; }
+.compare-cell {
+  padding: 12px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 13px;
+  color: #161021;
+  border-left: 1px solid #e8e4f0;
+  display: flex; flex-direction: column; gap: 2px;
+  line-height: 18px;
+}
+.compare-cell:first-child {
+  border-left: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #665e75;
+  justify-content: center;
+}
+.compare-row.head .compare-cell {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: center;
+  align-items: center;
+}
+.compare-cell.wiom { background: #fce6f4; color: #d9008d; }
+.compare-cell.wiom .value { font-weight: 700; }
+.compare-cell .value { font-weight: 600; }
+.compare-cell .sub { font-size: 11px; color: #665e75; font-weight: 400; }
+.compare-cell.wiom .sub { color: #b3006d; font-weight: 500; }
+
+/* Vertical stepper */
+.stepper { display: flex; flex-direction: column; }
+.stepper-step {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  min-height: 56px;
+}
+.stepper-marker {
+  width: 16px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stepper-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #e8e4f0;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.stepper-line {
+  flex: 1;
+  width: 2px;
+  background: #e8e4f0;
+  margin-top: 4px;
+}
+.stepper-step:last-child .stepper-line { display: none; }
+.stepper-text {
+  flex: 1;
+  padding-bottom: 24px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #161021;
+}
+.stepper-now {
+  font-size: 12px;
+  font-weight: 600;
+  color: #008043;
+  margin-top: 4px;
+}
+
+.stepper-step.done .stepper-dot { background: #008043; }
+.stepper-step.done .stepper-line { background: #008043; }
+.stepper-step.current .stepper-dot {
+  background: #008043;
+  animation: stepperPulse 1.4s ease-out infinite;
+}
+@keyframes stepperPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 128, 67, 0.55); }
+  70%  { box-shadow: 0 0 0 14px rgba(0, 128, 67, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 128, 67, 0); }
+}
+
+/* Address update loading screen */
+.addr-screen {
+  background: #faf9fc;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  gap: 24px;
+}
+.addr-check {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  background: #d9efe1;
+  display: flex; align-items: center; justify-content: center;
+}
+.addr-check-inner {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #008043;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.addr-check-inner svg { width: 28px; height: 28px; }
+.addr-title {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #161021;
+  text-align: center;
+}
+.addr-progress {
+  width: 100%;
+  height: 2px;
+  background: #d9efe1;
+  border-radius: 1px;
+  position: relative;
+}
+.addr-progress-fill {
+  position: absolute;
+  left: 0; top: 0; height: 100%;
+  width: 0%;
+  background: #008043;
+  border-radius: 1px;
+}
+.addr-progress-dot {
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #008043;
+}
+.addr-subtitle {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 13px;
+  color: #665e75;
+  text-align: center;
+}
+.addr-date {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #008043;
+  text-align: center;
+  margin-top: -8px;
+}
+
+/* Quick-nav (top of viewport) */
+.quick-nav {
+  position: fixed;
+  bottom: calc(50% + 380px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+}
+.quick-nav-btn {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px;
+  padding: 8px 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s;
+}
+.quick-nav-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* Restart-flow link under flow-end-btn */
+.restart-flow-link {
+  display: block;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #665e75;
+  text-decoration: underline;
+  margin: -2px 16px 8px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+}
+.restart-flow-link:hover { color: #d9008d; }
+
+/* Flow-end marker on terminal screens */
+.flow-end-btn {
+  background: #ffd888;
+  color: #161021;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: center;
+  border: none;
+  border-radius: 8px;
+  margin: 0 16px 8px;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+/* Disabled chat CTA (after the user has already chosen) */
+.bk-wiom-msg .chat-cta.disabled {
+  pointer-events: none;
+  cursor: default;
+}
+.bk-wiom-msg .chat-cta.disabled .chat-cta-text {
+  color: #a7a1b2 !important;
+  font-weight: 500 !important;
+}
+
+/* ===== Cancel Confirmation Modal ===== */
+.bk-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 16, 33, 0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.bk-modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.bk-modal-card {
+  width: 296px;
+  background: #faf9fc;
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; gap: 24px;
+  transform: scale(0.94);
+  transition: transform 0.2s ease;
+}
+.bk-modal-overlay.show .bk-modal-card { transform: scale(1); }
+.bk-modal-title {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 26px;
+  color: #161021;
+}
+.bk-modal-text { display: flex; flex-direction: column; gap: 12px; }
+.bk-modal-body {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  color: #161021;
+  white-space: pre-line;
+}
+.bk-modal-actions { display: flex; flex-direction: column; gap: 12px; }
+.bk-modal-cta {
+  width: 100%;
+  height: 48px;
+  border-radius: 100px;
+  border: none; cursor: pointer;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: filter 0.15s ease;
+}
+.bk-modal-cta.primary { background: #d9008d; color: #faf9fc; }
+.bk-modal-cta.primary:hover { filter: brightness(1.05); }
+.bk-modal-cta.secondary { background: #fbe1f0; color: #d9008d; }
+.bk-modal-cta.secondary:hover { filter: brightness(0.97); }
+
+/* ===== Variant switcher CTAs (outside phone) ===== */
+.variant-switcher {
+  position: fixed;
+  left: calc(50% + 210px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.variant-switcher.show { opacity: 1; pointer-events: auto; }
+.variant-switcher-label {
+  font-family: 'Inter', sans-serif;
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-left: 4px;
+  margin-bottom: 4px;
+}
+.variant-btn {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 100px;
+  padding: 12px 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 220px;
+  text-align: center;
+}
+.variant-btn:hover {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+.variant-btn.active {
+  background: #d9008d;
+  color: #fff;
+  border-color: #d9008d;
+}
+
+/* ===== Cancel Reason Screen ===== */
+.reason-screen { background: #faf9fc; }
+
+.reason-status {
+  height: 24px; display: flex; justify-content: space-between; align-items: center;
+  padding: 0 16px; flex-shrink: 0;
+}
+.reason-status .time { font-family: 'Roboto', sans-serif; font-weight: 600; font-size: 12px; color: #161021; }
+.reason-status .icons { display: flex; gap: 4px; align-items: center; font-size: 11px; }
+
+.reason-topbar {
+  height: 56px;
+  display: flex; align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.reason-back-btn {
+  width: 24px; height: 24px;
+  cursor: pointer;
+  color: #161021;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.reason-back-btn svg { width: 24px; height: 24px; }
+.reason-spacer { flex: 1; }
+.reason-help {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 600; font-size: 14px;
+  color: #d9008d;
+  cursor: pointer;
+  padding: 8px;
+}
+.reason-translate-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  border: 1.5px solid #161021;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+}
+.reason-translate-btn .a { font-size: 11px; font-weight: 700; color: #161021; position: absolute; top: 3px; left: 5px; }
+.reason-translate-btn .ah { font-size: 11px; font-weight: 700; color: #161021; position: absolute; bottom: 3px; right: 5px; }
+.reason-translate-btn::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 1.5px;
+  background: #161021;
+  transform: rotate(-30deg);
+  top: 14px; left: 9px;
+}
+
+.reason-title {
+  margin: 8px 16px 24px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 30px;
+  color: #161021;
+  letter-spacing: -0.2px;
+}
+
+.reason-list {
+  padding: 0 16px;
+  display: flex; flex-direction: column;
+  gap: 16px;
+}
+.reason-option {
+  background: #faf9fc;
+  border: 1px solid #e8e4f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex; align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.reason-option:hover { background: #f1edf7; }
+.reason-radio {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #a7a1b2;
+  flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+.reason-option.selected { border-color: #d9008d; background: #fff; }
+.reason-option.selected .reason-radio { border-color: #d9008d; }
+.reason-option.selected .reason-radio::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: #d9008d;
+  border-radius: 50%;
+}
+.reason-text {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #161021;
+  line-height: 1.5;
+}
+
+/* Plain user reply (sent message, no quote) */
+.bk-user-msg {
+  align-self: flex-end;
+  width: 336px;
+  padding-left: 72px; padding-right: 12px;
+  display: flex; justify-content: flex-end;
+  position: relative;
+}
+.bk-user-msg .bubble-outer {
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  display: flex; flex-direction: column; gap: 4px;
+  max-width: 280px;
+  position: relative;
+}
+.bk-user-msg .bubble-outer::after {
+  content: '';
+  position: absolute;
+  right: -8px; top: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent transparent #fff;
+}
+.bk-user-msg .reply-content {
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.bk-user-msg .reply-text {
+  font-size: 14px; line-height: 20px; color: #161021;
+  max-width: 228px;
+  white-space: pre-wrap; word-wrap: break-word;
+}
+.bk-user-msg .meta {
+  align-self: flex-end;
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; line-height: 1.2; color: #a7a1b2;
+}
+.bk-user-msg .meta svg { width: 12px; height: 12px; color: #008043; }
+
+/* ===== PLACEHOLDER OPTION SCREEN ===== */
+.option-screen { background: #faf9fc; position: relative; }
+.option-topbar {
+  height: 56px;
+  display: flex; align-items: center; padding: 0 16px; gap: 12px;
+  flex-shrink: 0;
+}
+.option-back { width: 24px; height: 24px; cursor: pointer; color: #161021; }
+.option-topbar-title { font-size: 16px; font-weight: 600; color: #161021; }
+.option-content {
+  flex: 1; padding: 24px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+}
+.option-tag {
+  font-size: 12px; font-weight: 600; color: #d9008d;
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.option-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px; font-weight: 600; color: #161021;
+  line-height: 1.25; margin-bottom: 12px;
+}
+.option-desc {
+  font-size: 14px; color: #665e75; line-height: 1.6; max-width: 280px;
+}
+</style>
+</head>
+<body>
+
+<div class="quick-nav">
+  <button class="quick-nav-btn" data-link="5">Go to reason screen</button>
+</div>
+
+<div class="phone-frame">
+  <div class="screen-area">
+
+    <!-- Screen 1: Cancellation Flow Hub -->
+    <div class="screen hub-screen active" data-label="Cancellation Flow — Hub">
+      <div class="status-bar">
+        <span class="time">01:25</span>
+        <span class="icons">📶 📡 🔋</span>
+      </div>
+      <div class="hub-center">
+        <h1 class="hub-title">Cancellation Migration Flow</h1>
+        <button class="hub-cta" data-target="2">Start</button>
+      </div>
+      <div class="hub-bottom-glow"></div>
+    </div>
+
+    <!-- Screen 2: Booking Confirmed (Wiom chat) -->
+    <div class="screen bk" data-label="Booking Confirmed">
+      <div class="bk-status">
+        <span class="time">04:35 PM</span>
+        <span class="indicators">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2 12h2v2H2v-2zm3-3h2v5H5V9zm3-3h2v8H8V6zm3-3h2v11h-2V3z" fill="#161021"/></svg>
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3C5.5 3 3.2 4 1.5 5.5l1.5 1.4C4.4 5.7 6.1 5 8 5s3.6.7 5 1.9l1.5-1.4C12.8 4 10.5 3 8 3zm0 4C6.5 7 5 7.6 4 8.6l1.4 1.4C6.1 9.4 7 9 8 9s1.9.4 2.6 1l1.4-1.4C11 7.6 9.5 7 8 7zm0 4c-1 0-1.7.4-2.4 1L8 14.5 10.4 12c-.7-.6-1.4-1-2.4-1z" fill="#161021"/></svg>
+          <span style="font-family: 'Roboto', sans-serif; font-weight: 500;">50%</span>
+        </span>
+      </div>
+
+      <!-- Top app bar -->
+      <div class="bk-topbar">
+        <div class="bk-wiom-icon">
+          <div class="ring">
+            <svg viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="bk-topbar-text">
+          <div class="name">व्योम</div>
+          <div class="status">ऑनलाइन</div>
+        </div>
+        <div class="bk-topbar-actions">
+          <button class="bk-icon-btn" aria-label="Call">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.9a2 2 0 0 1-.45 2.11L8.09 10.09a16 16 0 0 0 6 6l1.36-1.36a2 2 0 0 1 2.11-.45c.93.35 1.9.6 2.9.72A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <button class="bk-icon-btn" aria-label="More">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sticky setup card -->
+      <div class="bk-sticky-wrap">
+        <div class="bk-sticky-card">
+          <div class="home-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#161021" stroke-width="1.7"><path d="M3 12l9-9 9 9M5 10v10h14V10" /></svg>
+          </div>
+          <div class="lines">
+            <div class="heading">घर का नेट: रमेश</div>
+            <div class="subline">
+              <span class="label">स्थिति:</span>
+              <span class="value">सेटअप बाकी है</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat messages -->
+      <div class="bk-chat" id="bkChat">
+        <!-- A11: Wiom greeting + address CTA -->
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नमस्ते रमेश जी,
+
+अब हम आपका सेटअप आसानी से पूरा करवा देंगे सबसे पहले, आपका पता बताइए </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">पता लिखें</span></div>
+          </div>
+        </div>
+
+        <!-- A11 reply: user replies with quoted Wiom -->
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">नमस्ते रमेश जी, अब हम आपका सेटअप आसानी से पूरा करवा देंगे, सबसे पहले आपका पता बताए</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">पता लिखे</p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A13: Wiom address-confirmation question with two CTAs -->
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">हाँ, नेट वाली जगह पर हूँ </span></div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">नहीं, नेट कहीं और लगेगा</span></div>
+          </div>
+        </div>
+
+        <!-- A13 reply -->
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">हाँ, नेट वाली जगह पर हूँ </p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A14: Booking confirmed -->
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">बहुत बढ़िया, आपकी बुकिंग कन्फर्म हो गई है </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- B: Save number nudge -->
+        <div class="bk-wiom-msg">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नेट लगवाने का दिन कन्फर्म करने के लिए व्योम से कॉल आएगा
+
+नंबर को सेव कर लें, ताकि कॉल मिस ना हो </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact card -->
+        <div class="bk-contact-card">
+          <div class="container">
+            <div class="header">
+              <div class="avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              </div>
+              <div class="info">
+                <div class="name">Wiom</div>
+                <div class="number">+91 88803 22222</div>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="divider"></div>
+              <a href="#" class="save-link">नंबर सेव करें</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing field (tap to focus) -->
+      <div class="bk-typing" data-link="3">
+        <div class="input">यहाँ पूछें....</div>
+        <button class="send-btn" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Booking Confirmed — Typing (keyboard up) -->
+    <div class="screen bk" data-label="Booking Confirmed — Typing">
+      <div class="bk-status">
+        <span class="time">04:35 PM</span>
+        <span class="indicators">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2 12h2v2H2v-2zm3-3h2v5H5V9zm3-3h2v8H8V6zm3-3h2v11h-2V3z" fill="#161021"/></svg>
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3C5.5 3 3.2 4 1.5 5.5l1.5 1.4C4.4 5.7 6.1 5 8 5s3.6.7 5 1.9l1.5-1.4C12.8 4 10.5 3 8 3zm0 4C6.5 7 5 7.6 4 8.6l1.4 1.4C6.1 9.4 7 9 8 9s1.9.4 2.6 1l1.4-1.4C11 7.6 9.5 7 8 7zm0 4c-1 0-1.7.4-2.4 1L8 14.5 10.4 12c-.7-.6-1.4-1-2.4-1z" fill="#161021"/></svg>
+          <span style="font-family: 'Roboto', sans-serif; font-weight: 500;">50%</span>
+        </span>
+      </div>
+
+      <!-- Top app bar -->
+      <div class="bk-topbar">
+        <div class="bk-wiom-icon">
+          <div class="ring">
+            <svg viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="bk-topbar-text">
+          <div class="name">व्योम</div>
+          <div class="status">ऑनलाइन</div>
+        </div>
+        <div class="bk-topbar-actions">
+          <button class="bk-icon-btn" aria-label="Call">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.9a2 2 0 0 1-.45 2.11L8.09 10.09a16 16 0 0 0 6 6l1.36-1.36a2 2 0 0 1 2.11-.45c.93.35 1.9.6 2.9.72A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <button class="bk-icon-btn" aria-label="More">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sticky setup card -->
+      <div class="bk-sticky-wrap">
+        <div class="bk-sticky-card">
+          <div class="home-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#161021" stroke-width="1.7"><path d="M3 12l9-9 9 9M5 10v10h14V10" /></svg>
+          </div>
+          <div class="lines">
+            <div class="heading">घर का नेट: रमेश</div>
+            <div class="subline">
+              <span class="label">स्थिति:</span>
+              <span class="value">सेटअप बाकी है</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat messages (clipped, scrolled to show end of conversation) -->
+      <div class="bk-chat" id="bkChat2">
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">हाँ, नेट वाली जगह पर हूँ </p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">बहुत बढ़िया, आपकी बुकिंग कन्फर्म हो गई है </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active typing field with text -->
+      <div class="bk-typing has-text bk-typing-bg">
+        <div class="input">mujhe net ki booking cancel karni hai</div>
+        <button class="send-btn" aria-label="Send" data-link="4">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </div>
+
+      <!-- Keyboard -->
+      <div class="kb">
+        <div class="kb-toolbar">
+          <div class="kb-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+          <div class="kb-toolbar-icons">
+            <span>GIF</span>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94a7.07 7.07 0 0 0 .04-1.88l2.03-1.58a.5.5 0 0 0 .12-.61l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.05 7.05 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.97 2h-3.84a.5.5 0 0 0-.49.42l-.36 2.54a7.05 7.05 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.75 8.48a.5.5 0 0 0 .12.61l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.61l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.05.71 1.62.94l.36 2.54c.04.24.25.42.49.42h3.84c.24 0 .45-.18.49-.42l.36-2.54c.57-.23 1.12-.54 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.61l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.87 15.07L10.33 12.56l.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-1V9c0-1.1-.9-2-2-2h-3V5.73c.6-.34 1-.99 1-1.73 0-1.1-.9-2-2-2s-2 .9-2 2c0 .74.4 1.39 1 1.73V7H8c-1.1 0-2 .9-2 2v2H5c-1.66 0-3 1.34-3 3s1.34 3 3 3h1v3c0 1.1.9 2 2 2h3v-3c0-1.1-.9-2-2-2-1.1 0-2 .9-2 2v1H8v-3h3c1.1 0 2-.9 2-2v-3h2c1.1 0 2-.9 2-2v-3h1v3c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>
+          </div>
+          <div class="kb-toolbar-divider"></div>
+          <div class="kb-toolbar-right">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5.3-3a5.3 5.3 0 0 1-10.6 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-1.7z"/></svg>
+          </div>
+        </div>
+        <div class="kb-keys">
+          <div class="kb-row">
+            <div class="kb-key">q</div><div class="kb-key">w</div><div class="kb-key">e</div><div class="kb-key">r</div><div class="kb-key">t</div><div class="kb-key">y</div><div class="kb-key">u</div><div class="kb-key">i</div><div class="kb-key">o</div><div class="kb-key">p</div>
+          </div>
+          <div class="kb-row" style="margin-left: 17px;">
+            <div class="kb-key">a</div><div class="kb-key">s</div><div class="kb-key">d</div><div class="kb-key">f</div><div class="kb-key">g</div><div class="kb-key">h</div><div class="kb-key">j</div><div class="kb-key">k</div><div class="kb-key">l</div>
+          </div>
+          <div class="kb-row">
+            <div class="kb-key wide"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zM7.41 16.41L12 21l4.59-4.59L15.17 15 12 18.17 8.83 15l-1.42 1.41z"/></svg></div>
+            <div class="kb-key">z</div><div class="kb-key">x</div><div class="kb-key">c</div><div class="kb-key">v</div><div class="kb-key">b</div><div class="kb-key">n</div><div class="kb-key">m</div>
+            <div class="kb-key wide"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg></div>
+          </div>
+          <div class="kb-row">
+            <div class="kb-key special-num">?123</div>
+            <div class="kb-key">,</div>
+            <div class="kb-key"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.99 7.99 0 0 1 5.08 16zm2.95-8H5.08a7.99 7.99 0 0 1 4.33-3.56A15.65 15.65 0 0 0 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg></div>
+            <div class="kb-key space"></div>
+            <div class="kb-key">.</div>
+            <div class="kb-key enter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 4: Booking Confirmed — Sent + Wiom typing -->
+    <div class="screen bk" data-label="Sent — Wiom typing">
+      <div class="bk-status">
+        <span class="time">04:35 PM</span>
+        <span class="indicators">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2 12h2v2H2v-2zm3-3h2v5H5V9zm3-3h2v8H8V6zm3-3h2v11h-2V3z" fill="#161021"/></svg>
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3C5.5 3 3.2 4 1.5 5.5l1.5 1.4C4.4 5.7 6.1 5 8 5s3.6.7 5 1.9l1.5-1.4C12.8 4 10.5 3 8 3zm0 4C6.5 7 5 7.6 4 8.6l1.4 1.4C6.1 9.4 7 9 8 9s1.9.4 2.6 1l1.4-1.4C11 7.6 9.5 7 8 7zm0 4c-1 0-1.7.4-2.4 1L8 14.5 10.4 12c-.7-.6-1.4-1-2.4-1z" fill="#161021"/></svg>
+          <span style="font-family: 'Roboto', sans-serif; font-weight: 500;">50%</span>
+        </span>
+      </div>
+
+      <div class="bk-topbar">
+        <div class="bk-wiom-icon">
+          <div class="ring">
+            <svg viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="bk-topbar-text">
+          <div class="name">व्योम</div>
+          <div class="status">ऑनलाइन</div>
+        </div>
+        <div class="bk-topbar-actions">
+          <button class="bk-icon-btn" aria-label="Call">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.9a2 2 0 0 1-.45 2.11L8.09 10.09a16 16 0 0 0 6 6l1.36-1.36a2 2 0 0 1 2.11-.45c.93.35 1.9.6 2.9.72A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <button class="bk-icon-btn" aria-label="More">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="bk-sticky-wrap">
+        <div class="bk-sticky-card">
+          <div class="home-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#161021" stroke-width="1.7"><path d="M3 12l9-9 9 9M5 10v10h14V10" /></svg>
+          </div>
+          <div class="lines">
+            <div class="heading">घर का नेट: रमेश</div>
+            <div class="subline">
+              <span class="label">स्थिति:</span>
+              <span class="value">सेटअप बाकी है</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat: full conversation + new sent message + Wiom typing dots -->
+      <div class="bk-chat">
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नमस्ते रमेश जी,
+
+अब हम आपका सेटअप आसानी से पूरा करवा देंगे सबसे पहले, आपका पता बताइए </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">पता लिखें</span></div>
+          </div>
+        </div>
+
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">नमस्ते रमेश जी, अब हम आपका सेटअप आसानी से पूरा करवा देंगे, सबसे पहले आपका पता बताए</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">पता लिखे</p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">हाँ, नेट वाली जगह पर हूँ </span></div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">नहीं, नेट कहीं और लगेगा</span></div>
+          </div>
+        </div>
+
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">हाँ, नेट वाली जगह पर हूँ </p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">बहुत बढ़िया, आपकी बुकिंग कन्फर्म हो गई है </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नेट लगवाने का दिन कन्फर्म करने के लिए व्योम से कॉल आएगा
+
+नंबर को सेव कर लें, ताकि कॉल मिस ना हो </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-contact-card">
+          <div class="container">
+            <div class="header">
+              <div class="avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              </div>
+              <div class="info">
+                <div class="name">Wiom</div>
+                <div class="number">+91 88803 22222</div>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="divider"></div>
+              <a href="#" class="save-link">नंबर सेव करें</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Newly sent user message -->
+        <div class="bk-user-msg">
+          <div class="bubble-outer">
+            <div class="reply-content">
+              <p class="reply-text">mujhe net ki booking cancel karni hai</p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wiom typing indicator (animated) -->
+        <div class="bk-typing-bubble with-tail" id="wiomTypingDots">
+          <div class="bubble">
+            <div class="dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
+        <!-- Wiom revealed message (hidden until typing completes) -->
+        <div class="bk-wiom-msg with-tail" id="wiomMsgReveal" style="display:none;">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">क्या आप बुकिंग कैंसिल करना चाहते हैं?
+
+अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं
+ताकि आपको कैंसिल करने की ज़रूरत न पड़े</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta cta-pink"><span class="chat-cta-text">समस्या बताएं</span></div>
+            <div class="divider"></div>
+            <div class="chat-cta" data-open-modal="cancelConfirm"><span class="chat-cta-text">नहीं, बुकिंग कैंसिल करें</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancel confirmation modal -->
+      <div class="bk-modal-overlay" id="cancelConfirm" data-modal>
+        <div class="bk-modal-card">
+          <h3 class="bk-modal-title">बुकिंग कैंसल करने पर ₹100 वापस नहीं मिलेगा।<br>क्या आप फिर भी कैंसल करना चाहते हैं?</h3>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close data-link="8">नहीं, जारी रखें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-link="5">हाँ, कैंसल करें</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing field (back to empty/disabled) -->
+      <div class="bk-typing" data-link="3">
+        <div class="input">यहाँ पूछें....</div>
+        <button class="send-btn" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 5: Cancel reason picker -->
+    <div class="screen reason-screen" data-label="Cancel — Reason">
+      <div class="reason-status">
+        <span class="time">04:35 PM</span>
+        <span class="icons">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3C5.5 3 3.2 4 1.5 5.5l1.5 1.4C4.4 5.7 6.1 5 8 5s3.6.7 5 1.9l1.5-1.4C12.8 4 10.5 3 8 3zm0 4C6.5 7 5 7.6 4 8.6l1.4 1.4C6.1 9.4 7 9 8 9s1.9.4 2.6 1l1.4-1.4C11 7.6 9.5 7 8 7zm0 4c-1 0-1.7.4-2.4 1L8 14.5 10.4 12c-.7-.6-1.4-1-2.4-1z" fill="#161021"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12h2v2H2v-2zm3-3h2v5H5V9zm3-3h2v8H8V6zm3-3h2v11h-2V3z" fill="#161021"/></svg>
+          <span style="font-family: 'Roboto', sans-serif; font-weight: 500; color: #161021;">50%</span>
+        </span>
+      </div>
+
+      <div class="reason-topbar">
+        <div class="reason-back-btn" data-link="4" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </div>
+        <div class="reason-spacer"></div>
+        <span class="reason-help">मदद</span>
+        <div class="reason-translate-btn" aria-label="Translate">
+          <span class="a">A</span>
+          <span class="ah">अ</span>
+        </div>
+      </div>
+
+      <h1 class="reason-title">बुकिंग कैंसिल क्यों करना चाहते हैं?</h1>
+
+      <div class="reason-list">
+        <div class="reason-option" data-reason data-open-modal="delayInfoModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">नेट लगने में देरी हो रही है</span>
+        </div>
+        <div class="reason-option" data-reason data-open-modal="addressChangeModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">गलत पते पर बुक कर दिया</span>
+        </div>
+        <div class="reason-option" data-reason data-open-modal="rescheduleModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">मैं इस समय उपलब्ध नहीं हूँ</span>
+        </div>
+        <div class="reason-option" data-reason data-open-modal="processInfoModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">मुझे आगे की प्रक्रिया समझ नहीं आ रही</span>
+        </div>
+        <div class="reason-option" data-reason data-open-modal="priceCompareModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">कीमत ज़्यादा लग रही है</span>
+        </div>
+        <div class="reason-option" data-reason data-link="7">
+          <div class="reason-radio"></div>
+          <span class="reason-text">अभी जरूरत नहीं है</span>
+        </div>
+        <div class="reason-option" data-reason data-open-modal="otherReasonModal">
+          <div class="reason-radio"></div>
+          <span class="reason-text">कोई अन्य कारण</span>
+        </div>
+      </div>
+
+      <!-- Delay info modal (triggered by reason 1) -->
+      <div class="bk-modal-overlay" id="delayInfoModal" data-modal>
+        <div class="bk-modal-card">
+          <div class="bk-modal-text">
+            <h3 class="bk-modal-title">आपकी बुकिंग कन्फर्म है</h3>
+            <p class="bk-modal-body">आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है।
+बस थोड़ा सा इंतज़ार—जल्द ही नेट चालू होगा।</p>
+          </div>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close data-link="6">इंतज़ार करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैंसल करें</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Address change modal (triggered by reason 2) -->
+      <div class="bk-modal-overlay" id="addressChangeModal" data-modal>
+        <div class="bk-modal-card">
+          <h3 class="bk-modal-title">आप अपना पता आसानी से बदल सकते हैं<br>आपकी बुकिंग सुरक्षित है</h3>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close data-link="9">पता बदलें</button>
+            <button class="bk-modal-cta secondary" data-modal-close>सपोर्ट से मदद लें</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process info full-screen modal (triggered by reason 4) -->
+      <div class="full-modal" id="processInfoModal" data-modal>
+        <div class="full-modal-header">
+          <button class="full-modal-back" data-modal-close aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="full-modal-title">हम आपको आसान तरीके से समझाते हैं</h2>
+        </div>
+        <div class="full-modal-content">
+          <div class="stepper">
+            <div class="stepper-step done">
+              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
+              <div class="stepper-text">आप बुकिंग करते हैं</div>
+            </div>
+            <div class="stepper-step current">
+              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
+              <div class="stepper-text">इंजीनियर असाइन होता है<div class="stepper-now">अभी आप यहाँ हैं</div></div>
+            </div>
+            <div class="stepper-step upcoming">
+              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
+              <div class="stepper-text">वह तय समय पर आकर नेट बॉक्स लगाता है</div>
+            </div>
+            <div class="stepper-step upcoming">
+              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
+              <div class="stepper-text">नेट चालू हो जाता है (शुरुआत में 2 दिन का ट्रायल)</div>
+            </div>
+            <div class="stepper-step upcoming">
+              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
+              <div class="stepper-text">इसके बाद आप अपने हिसाब से रिचार्ज करते हैं</div>
+            </div>
+            <div class="stepper-step upcoming">
+              <div class="stepper-marker"><div class="stepper-dot"></div></div>
+              <div class="stepper-text">और आराम से नेट का इस्तेमाल करते हैं</div>
+            </div>
+          </div>
+        </div>
+        <div class="full-modal-actions">
+          <button class="bk-modal-cta primary" data-modal-close data-link="13">समझ गया</button>
+          <button class="bk-modal-cta secondary" data-modal-close>सपोर्ट से बात करें</button>
+        </div>
+      </div>
+
+      <!-- Other reason full-screen modal (triggered by reason 7) -->
+      <div class="full-modal" id="otherReasonModal" data-modal>
+        <div class="full-modal-header">
+          <button class="full-modal-back" data-modal-close aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="full-modal-title">बुकिंग कैन्सल करने का करना नीचे लिखें</h2>
+        </div>
+        <div class="full-modal-content">
+          <textarea class="reason-textarea" placeholder="अपना कारण यहाँ लिखें" maxlength="200"></textarea>
+          <div class="reason-meta">
+            <span class="reason-error">कम से कम 50 अक्षर ज़रूरी हैं</span>
+            <span class="reason-counter">0 / 200</span>
+          </div>
+        </div>
+        <div class="full-modal-actions">
+          <button class="bk-modal-cta primary" data-submit-reason>बुकिंग कैन्सल करें</button>
+          <button class="bk-modal-cta secondary" data-modal-close>वापस जाएं</button>
+        </div>
+      </div>
+
+      <!-- Price comparison full-screen modal (triggered by reason 5) -->
+      <div class="full-modal" id="priceCompareModal" data-modal>
+        <div class="full-modal-header">
+          <button class="full-modal-back" data-modal-close aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="full-modal-title">क्या वाकई कीमत ज़्यादा है?</h2>
+        </div>
+        <div class="full-modal-content">
+          <div class="compare-table">
+            <div class="compare-row head">
+              <div class="compare-cell"></div>
+              <div class="compare-cell wiom">WIOM</div>
+              <div class="compare-cell">Jio / Airtel</div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell">रिचार्ज</div>
+              <div class="compare-cell wiom">
+                <span class="value">₹23 / दिन</span>
+                <span class="sub">कम से कम 1 दिन</span>
+              </div>
+              <div class="compare-cell">
+                <span class="value">₹800</span>
+                <span class="sub">कम से कम 1 महीना</span>
+              </div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell">लगवाने की कीमत</div>
+              <div class="compare-cell wiom"><span class="value">₹400</span></div>
+              <div class="compare-cell"><span class="value">₹2,500</span></div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell">स्पीड</div>
+              <div class="compare-cell wiom"><span class="value">बराबर</span></div>
+              <div class="compare-cell"><span class="value">बराबर</span></div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell">नेट</div>
+              <div class="compare-cell wiom"><span class="value">अनलिमिटेड</span></div>
+              <div class="compare-cell"><span class="value">अनलिमिटेड</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="full-modal-actions">
+          <button class="bk-modal-cta primary" data-modal-close data-link="13">समझ गया</button>
+          <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैन्सल करें</button>
+        </div>
+      </div>
+
+      <!-- Reschedule modal (triggered by reason 3) -->
+      <div class="bk-modal-overlay" id="rescheduleModal" data-modal>
+        <div class="bk-modal-card">
+          <h3 class="bk-modal-title">आप अपने हिसाब से नया दिन / समय चुन सकते हैं</h3>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close data-link="11">नया दिन/समय चुनें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैन्सल करें</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 6: Wait — Wiom acknowledged -->
+    <div class="screen bk" data-label="Wait — Wiom acknowledged">
+      <div class="bk-status">
+        <span class="time">04:35 PM</span>
+        <span class="indicators">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M2 12h2v2H2v-2zm3-3h2v5H5V9zm3-3h2v8H8V6zm3-3h2v11h-2V3z" fill="#161021"/></svg>
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3C5.5 3 3.2 4 1.5 5.5l1.5 1.4C4.4 5.7 6.1 5 8 5s3.6.7 5 1.9l1.5-1.4C12.8 4 10.5 3 8 3zm0 4C6.5 7 5 7.6 4 8.6l1.4 1.4C6.1 9.4 7 9 8 9s1.9.4 2.6 1l1.4-1.4C11 7.6 9.5 7 8 7zm0 4c-1 0-1.7.4-2.4 1L8 14.5 10.4 12c-.7-.6-1.4-1-2.4-1z" fill="#161021"/></svg>
+          <span style="font-family: 'Roboto', sans-serif; font-weight: 500;">50%</span>
+        </span>
+      </div>
+
+      <div class="bk-topbar">
+        <div class="bk-wiom-icon">
+          <div class="ring">
+            <svg viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="bk-topbar-text">
+          <div class="name">व्योम</div>
+          <div class="status">ऑनलाइन</div>
+        </div>
+        <div class="bk-topbar-actions">
+          <button class="bk-icon-btn" aria-label="Call">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.9a2 2 0 0 1-.45 2.11L8.09 10.09a16 16 0 0 0 6 6l1.36-1.36a2 2 0 0 1 2.11-.45c.93.35 1.9.6 2.9.72A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <button class="bk-icon-btn" aria-label="More">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="bk-sticky-wrap">
+        <div class="bk-sticky-card">
+          <div class="home-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#161021" stroke-width="1.7"><path d="M3 12l9-9 9 9M5 10v10h14V10" /></svg>
+          </div>
+          <div class="lines">
+            <div class="heading">घर का नेट: रमेश</div>
+            <div class="subline">
+              <span class="label">स्थिति:</span>
+              <span class="value">सेटअप बाकी है</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bk-chat">
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नमस्ते रमेश जी,
+
+अब हम आपका सेटअप आसानी से पूरा करवा देंगे सबसे पहले, आपका पता बताइए </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">पता लिखें</span></div>
+          </div>
+        </div>
+
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">नमस्ते रमेश जी, अब हम आपका सेटअप आसानी से पूरा करवा देंगे, सबसे पहले आपका पता बताए</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">पता लिखे</p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">हाँ, नेट वाली जगह पर हूँ </span></div>
+            <div class="divider"></div>
+            <div class="chat-cta"><span class="chat-cta-text">नहीं, नेट कहीं और लगेगा</span></div>
+          </div>
+        </div>
+
+        <div class="bk-user-reply">
+          <div class="bubble-outer">
+            <div class="quote">
+              <div class="bar"></div>
+              <div class="quote-content">
+                <span class="quote-author">Wiom</span>
+                <span class="quote-text">क्या आपको जहां नेट लगवाना है, अभी आप वही है?</span>
+              </div>
+            </div>
+            <div class="reply-content">
+              <p class="reply-text">हाँ, नेट वाली जगह पर हूँ </p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">बहुत बढ़िया, आपकी बुकिंग कन्फर्म हो गई है </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-wiom-msg">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">नेट लगवाने का दिन कन्फर्म करने के लिए व्योम से कॉल आएगा
+
+नंबर को सेव कर लें, ताकि कॉल मिस ना हो </p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-contact-card">
+          <div class="container">
+            <div class="header">
+              <div class="avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              </div>
+              <div class="info">
+                <div class="name">Wiom</div>
+                <div class="number">+91 88803 22222</div>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="divider"></div>
+              <a href="#" class="save-link">नंबर सेव करें</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-user-msg">
+          <div class="bubble-outer">
+            <div class="reply-content">
+              <p class="reply-text">mujhe net ki booking cancel karni hai</p>
+              <div class="meta">
+                <span>10:15 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wiom message — same content as screen 4 reveal, with CTAs DISABLED -->
+        <div class="bk-wiom-msg with-tail">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">क्या आप बुकिंग कैंसिल करना चाहते हैं?
+
+अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं
+ताकि आपको कैंसिल करने की ज़रूरत न पड़े</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta cta-pink disabled"><span class="chat-cta-text">समस्या बताएं</span></div>
+            <div class="divider"></div>
+            <div class="chat-cta disabled"><span class="chat-cta-text">नहीं, बुकिंग कैंसिल करें</span></div>
+          </div>
+        </div>
+
+        <!-- New typing indicator -->
+        <div class="bk-typing-bubble with-tail" id="wiomTypingDots2">
+          <div class="bubble">
+            <div class="dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
+        <!-- New Wiom acknowledgment message (revealed after 2s) -->
+        <div class="bk-wiom-msg with-tail" id="wiomMsgReveal2" style="display:none;">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">हम पर भरोसा करने के लिए शुक्रिया
+
+हम जल्द से जल्द आपका नेट चालू कराने में लगे हैं।
+कोई दिक्कत हो तो आप हमें कभी भी संपर्क कर सकते हैं, हम यहीं हैं।</p>
+              <span class="timestamp">10:15 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="flow-end-btn">Flow ends here</button>
+      <button class="restart-flow-link" data-link="5">restart flow</button>
+      <div class="bk-typing">
+        <div class="input">यहाँ पूछें....</div>
+        <button class="send-btn" aria-label="Send">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 7: Option 2 placeholder -->
+    <div class="screen option-screen" data-label="Option 2">
+      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
+      <div class="option-topbar">
+        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span class="option-topbar-title">Option 2</span>
+      </div>
+      <div class="option-content">
+        <div class="option-tag">Option 2</div>
+        <h2 class="option-title">Placeholder screen</h2>
+        <p class="option-desc">Replace this with the Option 2 design when ready.</p>
+      </div>
+    </div>
+
+    <!-- Screen 4: Option 3 placeholder -->
+    <div class="screen option-screen" data-label="Option 3">
+      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
+      <div class="option-topbar">
+        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span class="option-topbar-title">Option 3</span>
+      </div>
+      <div class="option-content">
+        <div class="option-tag">Option 3</div>
+        <h2 class="option-title">Placeholder screen</h2>
+        <p class="option-desc">Replace this with the Option 3 design when ready.</p>
+      </div>
+    </div>
+
+    <!-- Screen 5: Option 4 placeholder -->
+    <div class="screen option-screen" data-label="Option 4">
+      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
+      <div class="option-topbar">
+        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span class="option-topbar-title">Option 4</span>
+      </div>
+      <div class="option-content">
+        <div class="option-tag">Option 4</div>
+        <h2 class="option-title">Placeholder screen</h2>
+        <p class="option-desc">Replace this with the Option 4 design when ready.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Variant switcher (right of phone, controls delay-modal body) -->
+<div class="variant-switcher">
+  <div class="variant-switcher-label">Modal variant</div>
+  <button class="variant-btn active" data-variant="not-assigned">Engineer not assigned</button>
+  <button class="variant-btn" data-variant="assigned">Engineer assigned</button>
+</div>
+
+<div class="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Previous">‹</button>
+  <span class="screen-counter" id="screenCounter">1 / 5</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Next">›</button>
+</div>
+<div class="screen-label" id="screenLabel">Cancellation Flow — Hub</div>
+
+<script>
+// Clone screen 6 (Wait — Wiom acknowledged) into a terminal chat screen with custom reveal text
+function buildTerminalChatScreen(label, idSuffix, revealText) {
+  var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
+  if (!src) return;
+  var clone = src.cloneNode(true);
+  clone.dataset.label = label;
+  clone.classList.remove('active');
+  var dots = clone.querySelector('#wiomTypingDots2');
+  if (dots) dots.id = 'wiomTypingDots' + idSuffix;
+  var reveal = clone.querySelector('#wiomMsgReveal2');
+  if (reveal) {
+    reveal.id = 'wiomMsgReveal' + idSuffix;
+    var t = reveal.querySelector('.text');
+    if (t) t.textContent = revealText;
+  }
+  clone.querySelectorAll('[data-injected]').forEach(function(n) { n.remove(); });
+  var firstOption = document.querySelector('.screen.option-screen');
+  if (firstOption) src.parentNode.insertBefore(clone, firstOption);
+  else src.parentNode.appendChild(clone);
+}
+buildTerminalChatScreen('Cancellation Confirmed', '3', 'आपकी बुकिंग कैंसल कर दी गई है।\n\nअगर आप दोबारा कोशिश करना चाहें, हम आपके लिए यहीं हैं, और इस बार बेहतर अनुभव देने की पूरी कोशिश करेंगे |');
+buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिंग जारी है और ₹100 का बुकिंग अमाउंट सुरक्षित है।\n\nऔर किसी मदद के लिए हम यहीं हैं।');
+
+// Build the address-update loading screen + the resulting chat ack
+(function buildAddressScreens() {
+  var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
+  var firstOption = document.querySelector('.screen.option-screen');
+  if (!src || !firstOption) return;
+
+  // Loading screen
+  var load = document.createElement('div');
+  load.className = 'screen addr-screen';
+  load.dataset.label = 'Address — Updating';
+  load.innerHTML = '<div class="addr-check"><div class="addr-check-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 19 7"/></svg></div></div>'
+    + '<h2 class="addr-title">पता अपडेट हो गया है</h2>'
+    + '<div class="addr-progress"><div class="addr-progress-fill"></div><div class="addr-progress-dot"></div></div>'
+    + '<p class="addr-subtitle">अगले स्टेप पर ले जाया जा रहा है</p>';
+  src.parentNode.insertBefore(load, firstOption);
+
+  // Chat ack screen
+  var ack = src.cloneNode(true);
+  ack.dataset.label = 'Address — Acknowledged';
+  ack.classList.remove('active');
+  var dots = ack.querySelector('#wiomTypingDots2'); if (dots) dots.remove();
+  var rev = ack.querySelector('#wiomMsgReveal2'); if (rev) rev.remove();
+  ack.querySelectorAll('[data-injected]').forEach(function(n) { n.remove(); });
+  var chat = ack.querySelector('.bk-chat');
+  if (chat) {
+    chat.insertAdjacentHTML('beforeend',
+      '<div class="bk-wiom-msg with-tail" id="addrChatAnchor">'
+      + '<div class="bubble"><div class="content-box"><p class="text">पता अपडेट हो गया है</p><span class="timestamp">10:15 AM</span></div></div></div>'
+      + '<div class="bk-wiom-msg"><div class="bubble"><div class="content-box"><p class="text">नेट लगवाने का दिन कन्फर्म करने के लिए व्योम से कॉल आएगा\n\nनंबर को सेव कर लें, ताकि कॉल मिस ना हो</p><span class="timestamp">10:15 AM</span></div></div></div>'
+      + '<div class="bk-contact-card"><div class="container"><div class="header">'
+      + '<div class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div>'
+      + '<div class="info"><div class="name">Wiom</div><div class="number">+91 88803 22222</div></div>'
+      + '</div><div class="footer"><div class="divider"></div><a href="#" class="save-link">नंबर सेव करें</a></div></div></div>'
+    );
+  }
+  src.parentNode.insertBefore(ack, firstOption);
+})();
+
+// Build reschedule loading screen + chat ack
+(function buildRescheduleScreens() {
+  var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
+  var firstOption = document.querySelector('.screen.option-screen');
+  if (!src || !firstOption) return;
+
+  var load = document.createElement('div');
+  load.className = 'screen addr-screen';
+  load.dataset.label = 'Reschedule — Updating';
+  load.innerHTML = '<div class="addr-check"><div class="addr-check-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 13 10 18 19 7"/></svg></div></div>'
+    + '<h2 class="addr-title">नया दिन अपडेट हो गया है</h2>'
+    + '<p class="addr-date">25 दिसंबर, शाम 6–8 बजे</p>'
+    + '<div class="addr-progress"><div class="addr-progress-fill"></div><div class="addr-progress-dot"></div></div>'
+    + '<p class="addr-subtitle">अगले स्टेप पर ले जाया जा रहा है</p>';
+  src.parentNode.insertBefore(load, firstOption);
+
+  var ack = src.cloneNode(true);
+  ack.dataset.label = 'Reschedule — Acknowledged';
+  ack.classList.remove('active');
+  var dots = ack.querySelector('#wiomTypingDots2'); if (dots) dots.remove();
+  var rev = ack.querySelector('#wiomMsgReveal2'); if (rev) rev.remove();
+  ack.querySelectorAll('[data-injected]').forEach(function(n) { n.remove(); });
+  var chat = ack.querySelector('.bk-chat');
+  if (chat) {
+    chat.insertAdjacentHTML('beforeend',
+      '<div class="bk-wiom-msg with-tail" id="rescheduleChatAnchor">'
+      + '<div class="bubble"><div class="content-box"><p class="text">आपके नेट लगवाने का नया समय 25 दिसंबर, शाम 6–8 बजे के लिए कन्फर्म हो गया है</p><span class="timestamp">10:15 AM</span></div></div></div>'
+      + '<div class="bk-wiom-msg"><div class="bubble"><div class="content-box"><p class="text">आपका नेट लगाने के लिए इंजीनियर ढूंढा जा रहा है।\n\nअब आप आराम करें। इंजीनियर मिलते ही हम आपको बता देंगे।</p><span class="timestamp">10:15 AM</span></div></div></div>'
+    );
+  }
+  src.parentNode.insertBefore(ack, firstOption);
+})();
+
+buildTerminalChatScreen('Process Info — Acknowledged', '5', 'भरोसा बनाए रखने के लिए शुक्रिया\n\nहम आपके लिए इंजीनियर ढूंढ रहे हैं।\nमिलते ही आपको तुरंत बता देंगे।');
+
+var screens = document.querySelectorAll('.screen');
+var prevBtn = document.getElementById('prevBtn');
+var nextBtn = document.getElementById('nextBtn');
+var counter = document.getElementById('screenCounter');
+var labelEl = document.getElementById('screenLabel');
+var current = 0;
+
+function show(idx) {
+  if (idx < 0 || idx >= screens.length) return;
+  screens[current].classList.remove('active');
+  current = idx;
+  screens[current].classList.add('active');
+  counter.textContent = (current + 1) + ' / ' + screens.length;
+  labelEl.textContent = screens[current].dataset.label || '';
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === screens.length - 1;
+
+  // Close the delay modal + hide its switcher when leaving the reason screen
+  if (!screens[current].classList.contains('reason-screen')) {
+    var dm = document.getElementById('delayInfoModal');
+    if (dm) dm.classList.remove('show');
+    var sw = document.querySelector('.variant-switcher');
+    if (sw) sw.classList.remove('show');
+  }
+
+  // Auto-scroll any chat screen to bottom on entry
+  if (screens[current].classList.contains('bk')) {
+    var chat = screens[current].querySelector('.bk-chat');
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Trigger Wiom typing → reveal sequences (each only fires on its own screen)
+  runTypingReveal('wiomTypingDots', 'wiomMsgReveal');
+  runTypingReveal('wiomTypingDots2', 'wiomMsgReveal2');
+  runTypingReveal('wiomTypingDots3', 'wiomMsgReveal3');
+  runTypingReveal('wiomTypingDots4', 'wiomMsgReveal4');
+  runTypingReveal('wiomTypingDots5', 'wiomMsgReveal5');
+
+  // Address/reschedule loading auto-transition
+  if (screens[current].classList.contains('addr-screen')) startAddressProgress(screens[current]);
+}
+
+// === Address/reschedule loading progress + auto-advance ===
+var addrTimer = null;
+function startAddressProgress(screen) {
+  if (!screen || !screen.classList.contains('active')) return;
+  var fill = screen.querySelector('.addr-progress-fill');
+  if (!fill) return;
+  if (addrTimer) clearTimeout(addrTimer);
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  void fill.offsetWidth;
+  fill.style.transition = 'width 2.4s linear';
+  fill.style.width = '100%';
+  addrTimer = setTimeout(function() {
+    if (!screen.classList.contains('active')) return;
+    var idx = Array.from(screens).indexOf(screen);
+    if (idx >= 0 && idx + 1 < screens.length) show(idx + 1);
+  }, 2500);
+}
+
+// === Generic typing dots → message reveal (used by screens 4 and 6) ===
+function runTypingReveal(dotsId, revealId) {
+  var dots = document.getElementById(dotsId);
+  var reveal = document.getElementById(revealId);
+  if (!dots || !reveal) return;
+
+  if (reveal._timer) clearTimeout(reveal._timer);
+  reveal.classList.remove('bubble-reveal');
+
+  var hostScreen = dots.closest('.screen');
+  if (!hostScreen || !hostScreen.classList.contains('active')) {
+    dots.style.display = '';
+    reveal.style.display = 'none';
+    return;
+  }
+
+  dots.style.display = '';
+  reveal.style.display = 'none';
+
+  reveal._timer = setTimeout(function() {
+    if (!hostScreen.classList.contains('active')) return;
+    dots.style.display = 'none';
+    reveal.style.display = '';
+    reveal.classList.add('bubble-reveal');
+    var chat = hostScreen.querySelector('.bk-chat');
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  }, 2000);
+}
+
+function navigate(dir) { show(current + dir); }
+
+prevBtn.addEventListener('click', function() { navigate(-1); });
+nextBtn.addEventListener('click', function() { navigate(1); });
+
+document.querySelectorAll('.hub-cta').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var target = parseInt(btn.dataset.target, 10);
+    if (!isNaN(target)) show(target - 1);
+  });
+});
+
+document.querySelectorAll('[data-link]').forEach(function(el) {
+  el.addEventListener('click', function() {
+    var target = parseInt(el.dataset.link, 10);
+    if (!isNaN(target)) show(target - 1);
+  });
+});
+
+document.querySelectorAll('[data-back]').forEach(function(el) {
+  el.addEventListener('click', function() { show(0); });
+});
+
+// === Modal open/close (with linked variant switcher for delayInfoModal) ===
+function toggleDelaySwitcher(modalId, on) {
+  if (modalId !== 'delayInfoModal') return;
+  var switcher = document.querySelector('.variant-switcher');
+  if (switcher) switcher.classList.toggle('show', on);
+}
+document.querySelectorAll('[data-open-modal]').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var id = el.dataset.openModal;
+    var modal = document.getElementById(id);
+    if (modal) {
+      modal.classList.add('show');
+      toggleDelaySwitcher(id, true);
+    }
+  });
+});
+// Map each modal to where its user-reply gets injected and what message to quote
+// Inject target depends on the destination chat (driven by the CTA's data-link)
+var injectByLink = {
+  '4': { anchorId: 'wiomMsgReveal', position: 'after' },     // stays on screen 4 chat
+  '5': { anchorId: 'wiomMsgReveal', position: 'after' },     // navigates to reasons; reply lands in screen 4
+  '6': { anchorId: 'wiomTypingDots2', position: 'before' },  // wait — screen 6
+  '7': { anchorId: 'wiomTypingDots3', position: 'before' },  // cancel — screen 7
+  '8': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking — screen 8
+  '9': { anchorId: 'addrChatAnchor', position: 'before' },   // address change — lands in screen 10 chat
+  '11': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in screen 12 chat
+  '13': { anchorId: 'wiomTypingDots5', position: 'before' }        // process info — lands in screen 13 chat
+};
+var modalReplyContext = {
+  cancelConfirm: { quote: 'क्या आप बुकिंग कैंसिल करना चाहते हैं? अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं...' },
+  delayInfoModal: { quote: 'आपकी बुकिंग कन्फर्म है — आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है...' },
+  addressChangeModal: { quote: 'कोई बात नहीं — आप अपना पता आसानी से बदल सकते हैं, आपकी बुकिंग सुरक्षित है' },
+  rescheduleModal: { quote: 'आप अपने हिसाब से नया दिन / समय चुन सकते हैं' },
+  processInfoModal: { quote: 'हम आपको आसान तरीके से समझाते हैं — पूरी प्रक्रिया' },
+  priceCompareModal: { quote: 'क्या वाकई कीमत ज़्यादा है? — Wiom बनाम बड़ी कंपनियां' }
+};
+function injectUserReply(anchorEl, position, quote, replyText) {
+  if (!anchorEl) return;
+  var chat = anchorEl.closest('.bk-chat');
+  if (!chat) return;
+  // Dedup: remove any prior injection tied to this anchor
+  var key = anchorEl.id || 'x';
+  var prior = chat.querySelector('[data-injected="' + key + '"]');
+  if (prior) prior.remove();
+  var div = document.createElement('div');
+  div.className = 'bk-user-reply';
+  div.dataset.injected = key;
+  div.innerHTML = '<div class="bubble-outer"><div class="quote"><div class="bar"></div><div class="quote-content"><span class="quote-author">Wiom</span><span class="quote-text">' + quote + '</span></div></div><div class="reply-content"><p class="reply-text">' + replyText + '</p><div class="meta"><span>10:15 AM</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg></div></div></div>';
+  if (position === 'after') anchorEl.parentNode.insertBefore(div, anchorEl.nextSibling);
+  else anchorEl.parentNode.insertBefore(div, anchorEl);
+  chat.scrollTop = chat.scrollHeight;
+}
+document.querySelectorAll('[data-modal-close]').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var modal = btn.closest('[data-modal]');
+    if (modal) {
+      var ctx = modalReplyContext[modal.id];
+      if (ctx) {
+        var link = btn.dataset.link || (modal.id === 'cancelConfirm' ? '4' : '6');
+        var tgt = injectByLink[link] || injectByLink['4'];
+        injectUserReply(document.getElementById(tgt.anchorId), tgt.position, ctx.quote, btn.textContent.trim());
+      }
+      modal.classList.remove('show');
+      toggleDelaySwitcher(modal.id, false);
+    }
+  });
+});
+document.querySelectorAll('[data-modal]').forEach(function(modal) {
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.classList.remove('show');
+      toggleDelaySwitcher(modal.id, false);
+    }
+  });
+});
+
+// === Delay-modal variant switcher ===
+var delayVariantTexts = {
+  'not-assigned': "आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है।\nबस थोड़ा सा इंतज़ार—जल्द ही नेट चालू होगा।",
+  'assigned': "आपके कनेक्शन के लिए इंजीनियर असाइन हो गया है।\nवो जल्द ही आपके घर आकर नेट चालू करेगा।\nबस थोड़ा सा इंतज़ार करें—सब सेट हो जाएगा।"
+};
+document.querySelectorAll('.variant-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.variant-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var key = btn.dataset.variant;
+    var body = document.querySelector('#delayInfoModal .bk-modal-body');
+    if (body && delayVariantTexts[key]) body.textContent = delayVariantTexts[key];
+    show(4);
+    var modal = document.getElementById('delayInfoModal');
+    if (modal) {
+      modal.classList.add('show');
+      toggleDelaySwitcher('delayInfoModal', true);
+    }
+  });
+});
+
+// === Reason picker (single-select radio behavior) ===
+document.querySelectorAll('[data-reason]').forEach(function(opt) {
+  opt.addEventListener('click', function() {
+    var siblings = opt.parentElement.querySelectorAll('[data-reason]');
+    siblings.forEach(function(s) { s.classList.remove('selected'); });
+    opt.classList.add('selected');
+    // If the reason itself has data-link (no intermediate modal), inject a user-reply quoting the picker
+    if (opt.dataset.link && injectByLink[opt.dataset.link]) {
+      var tgt = injectByLink[opt.dataset.link];
+      var replyText = opt.querySelector('.reason-text').textContent.trim();
+      injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'बुकिंग कैंसिल क्यों करना चाहते हैं?', replyText);
+    }
+  });
+});
+
+// === Other-reason modal: char counter + submit validation ===
+(function setupOtherReason() {
+  var ta = document.querySelector('#otherReasonModal .reason-textarea');
+  var counter = document.querySelector('#otherReasonModal .reason-counter');
+  var error = document.querySelector('#otherReasonModal .reason-error');
+  var submit = document.querySelector('#otherReasonModal [data-submit-reason]');
+  if (!ta || !submit) return;
+  ta.addEventListener('input', function() {
+    var len = ta.value.length;
+    counter.textContent = len + ' / 200';
+    counter.classList.toggle('over', len >= 200);
+    if (len >= 50) { error.classList.remove('show'); ta.classList.remove('error'); }
+  });
+  submit.addEventListener('click', function() {
+    if (ta.value.length < 50) {
+      error.classList.add('show');
+      ta.classList.add('error');
+      return;
+    }
+    var modal = document.getElementById('otherReasonModal');
+    if (modal) modal.classList.remove('show');
+    var tgt = injectByLink['7'];
+    if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'बुकिंग कैंसिल क्यों करना चाहते हैं?', ta.value.trim());
+    show(6); // index 6 = screen 7 (Cancellation Confirmed)
+  });
+})();
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') navigate(1);
+  if (e.key === 'ArrowLeft') navigate(-1);
+});
+
+var touchStartX = 0;
+var area = document.querySelector('.screen-area');
+area.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+area.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+});
+
+prevBtn.disabled = true;
+</script>
+</body>
+</html>
