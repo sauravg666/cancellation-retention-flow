@@ -589,6 +589,13 @@ body {
   position: absolute; left: 0; top: 0;
   color: #d9008d; font-weight: 700;
 }
+.plan-section-title {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #161021;
+  margin: 16px 0 8px;
+}
 .plan-table {
   border: 1px solid #e8e4f0;
   border-radius: 12px;
@@ -599,7 +606,7 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 14px;
   border-bottom: 1px solid #e8e4f0;
 }
 .plan-row:last-child { border-bottom: none; }
@@ -864,6 +871,79 @@ body {
 }
 .persona-cta:hover { background: #444; }
 
+/* Reasons-intro yellow screen (multi-paragraph + numbered list, button pinned at bottom) */
+.reasons-intro {
+  justify-content: flex-start !important;
+  padding: 32px 24px 24px;
+  gap: 16px;
+  overflow: hidden;
+}
+.reasons-intro-content {
+  flex: 1;
+  overflow-y: auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #161021;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+  max-width: 100%;
+}
+.reasons-intro-content::-webkit-scrollbar { display: none; width: 0; }
+.reasons-intro-content { scrollbar-width: none; }
+.reasons-intro-content p { margin: 0 0 12px; }
+.reasons-intro-content .example-label {
+  margin: 16px 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #665e75;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.reasons-intro-content .example-stage {
+  margin: 0 0 16px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.06);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.reasons-intro-content .reasons-label {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.reasons-intro-content ol { margin: 0; padding-left: 22px; font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif; }
+.reasons-intro-content ol li { margin: 6px 0; }
+
+/* Delay variant picker (yellow screen with 2 buttons) */
+.delay-variant-picker {
+  justify-content: center !important;
+  padding: 32px 24px;
+  gap: 32px;
+}
+.delay-picker-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #161021;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+.delay-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.delay-picker-list .hub-cta {
+  width: 100%;
+  height: auto;
+  min-height: 64px;
+  padding: 14px 18px;
+}
+
 /* ===== Yellow placeholder screens (mirrors hub style) ===== */
 .yellow-screen {
   background: #ffd888;
@@ -895,6 +975,17 @@ body {
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ===== Mobile responsive: hide all chrome, show only the phone frame ===== */
+@media (max-width: 768px) {
+  body { background: #000; }
+  .nav-panel,
+  .quick-nav,
+  .nav-controls,
+  .screen-label {
+    display: none !important;
+  }
 }
 
 /* ===== Left-side jump nav panel ===== */
@@ -1280,14 +1371,14 @@ body {
 <body>
 
 <div class="quick-nav">
-  <button class="quick-nav-btn" data-link="5">Go to reason screen</button>
+  <button class="quick-nav-btn" data-link="6">Go to reason screen</button>
 </div>
 
 <div class="phone-frame">
   <div class="screen-area">
 
     <!-- Screen 1: Persona / context -->
-    <div class="screen persona-screen active" data-label="">
+    <div class="screen persona-screen active" data-label="Persona">
       <div class="persona-scroll">
         <div class="persona-header">
           <div class="persona-text-block">
@@ -1845,11 +1936,11 @@ body {
       <h1 class="reason-title">क्या समस्या आ रही है</h1>
 
       <div class="reason-list">
-        <div class="reason-option" data-reason data-link="16">
+        <div class="reason-option" data-reason data-link="17">
           <div class="reason-radio"></div>
           <span class="reason-text">मुझे आगे की प्रक्रिया समझ नहीं आ रही</span>
         </div>
-        <div class="reason-option" data-reason data-link="17">
+        <div class="reason-option" data-reason data-link="18">
           <div class="reason-radio"></div>
           <span class="reason-text">कीमत ज़्यादा लग रही है</span>
         </div>
@@ -1861,7 +1952,7 @@ body {
           <div class="reason-radio"></div>
           <span class="reason-text">मैं इस समय उपलब्ध नहीं हूँ</span>
         </div>
-        <div class="reason-option" data-reason data-open-modal="delayInfoModal">
+        <div class="reason-option" data-reason data-link="20">
           <div class="reason-radio"></div>
           <span class="reason-text">नेट लगने में देरी हो रही है</span>
         </div>
@@ -1869,7 +1960,7 @@ body {
           <div class="reason-radio"></div>
           <span class="reason-text">अभी जरूरत नहीं है</span>
         </div>
-        <div class="reason-option" data-reason data-link="18">
+        <div class="reason-option" data-reason data-link="19">
           <div class="reason-radio"></div>
           <span class="reason-text">कोई अन्य कारण</span>
         </div>
@@ -1884,8 +1975,8 @@ body {
 बस थोड़ा सा इंतज़ार और।</p>
           </div>
           <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="6">इंतेजार करें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैंसिल करें</button>
+            <button class="bk-modal-cta primary" data-modal-close data-link="7">इंतेजार करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-link="8">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -1895,7 +1986,7 @@ body {
         <div class="bk-modal-card">
           <h3 class="bk-modal-title">आप नेट लगाने का पता आसानी से बदल सकते है, आपकी बुकिंग पूरी तरह सुरक्षित रहेगी</h3>
           <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="9">पता बदलें</button>
+            <button class="bk-modal-cta primary" data-modal-close data-link="10">पता बदलें</button>
             <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">बुकिंग कैंसिल करें</button>
           </div>
         </div>
@@ -1904,7 +1995,7 @@ body {
       <!-- Process info full-screen modal (triggered by reason 4) -->
       <div class="full-modal" id="processInfoModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-link="5" aria-label="Back">
+          <button class="full-modal-back" data-link="6" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <button class="full-modal-help">मदद लें</button>
@@ -1949,7 +2040,7 @@ body {
           </div>
         </div>
         <div class="full-modal-actions">
-          <button class="bk-modal-cta primary" data-modal-close data-link="15" data-inject-quote="हम आपको आसान तरीके से समझाते हैं — पूरी प्रक्रिया">समझ गया</button>
+          <button class="bk-modal-cta primary" data-modal-close data-link="16" data-inject-quote="हम आपको आसान तरीके से समझाते हैं — पूरी प्रक्रिया">समझ गया</button>
           <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">मुझे बुकिंग कैंसिल करनी है</button>
         </div>
       </div>
@@ -1957,7 +2048,7 @@ body {
       <!-- Other reason full-screen modal (triggered by reason 7) -->
       <div class="full-modal" id="otherReasonModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-link="5" aria-label="Back">
+          <button class="full-modal-back" data-link="6" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <button class="full-modal-help">मदद लें</button>
@@ -1979,17 +2070,18 @@ body {
       <!-- Price comparison full-screen modal (triggered by reason 5) -->
       <div class="full-modal" id="priceCompareModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-link="5" aria-label="Back">
+          <button class="full-modal-back" data-link="6" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <h2 class="full-modal-title">व्योम मे नेट का खर्च आपके कंट्रोल में है</h2>
         </div>
         <div class="full-modal-content">
           <div class="plan-subtext">
-            <div class="plan-subtext-item">₹23/दिन से शुरू करें</div>
-            <div class="plan-subtext-item">पूरे महीने का प्लान लेना ज़रूरी नहीं</div>
-            <div class="plan-subtext-item">जब चाहें, जितना चाहें — उतना ही रिचार्ज करें</div>
+            <div class="plan-subtext-item">बस ₹100 देकर बुकिंग करें</div>
+            <div class="plan-subtext-item">₹300 नेटबॉक्स सिक्योरिटी - वापसी पर पूरा पैसा वापस</div>
+            <div class="plan-subtext-item">उसके बाद जितने का चाहें रिचार्ज करें</div>
           </div>
+          <h3 class="plan-section-title">रिचार्ज इस प्रकार हैं</h3>
           <div class="plan-table">
             <div class="plan-row">
               <div><div class="plan-days">1 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
@@ -2014,7 +2106,7 @@ body {
           </div>
         </div>
         <div class="full-modal-actions">
-          <button class="bk-modal-cta primary" data-modal-close data-link="15" data-inject-quote="व्योम मे नेट का खर्च आपके कंट्रोल में है">समझ गया</button>
+          <button class="bk-modal-cta primary" data-modal-close data-link="16" data-inject-quote="व्योम मे नेट का खर्च आपके कंट्रोल में है">समझ गया</button>
           <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">नहीं, बुकिंग कैंसिल करे</button>
         </div>
       </div>
@@ -2035,7 +2127,7 @@ body {
         <div class="bk-modal-card">
           <h3 class="bk-modal-title">आप अपने हिसाब से नया दिन / समय चुन सकते हैं</h3>
           <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="12">नया दिन/समय चुनें</button>
+            <button class="bk-modal-cta primary" data-modal-close data-link="13">नया दिन/समय चुनें</button>
             <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">बुकिंग कैंसिल करें</button>
           </div>
         </div>
@@ -2243,7 +2335,7 @@ body {
       </div>
 
       <button class="flow-end-btn">Flow ends here</button>
-      <button class="restart-flow-link" data-link="5">restart flow</button>
+      <button class="restart-flow-link" data-link="6">restart flow</button>
       <div class="bk-typing">
         <div class="input">यहाँ पूछें....</div>
         <button class="send-btn" aria-label="Send">
@@ -2305,6 +2397,30 @@ function buildTerminalChatScreen(label, idSuffix, revealText) {
   if (firstOption) src.parentNode.insertBefore(clone, firstOption);
   else src.parentNode.appendChild(clone);
 }
+// Reasons-intro yellow screen — explainer before the Reasons screen
+(function buildReasonsIntroScreen() {
+  var anchor = document.querySelector('.screen.reason-screen');
+  if (!anchor) return;
+  var s = document.createElement('div');
+  s.className = 'screen yellow-screen reasons-intro';
+  s.dataset.label = 'Reasons — Intro';
+  s.innerHTML = '<div class="reasons-intro-content">'
+    + '<p>We have listed all possible reasons together for testing purposes.</p>'
+    + '<p>In development, these will be dynamically shown based on the user\'s current stage in the booking journey.</p>'
+    + '<p class="example-label">eg.</p>'
+    + '<p class="example-stage">Address provided, date not selected</p>'
+    + '<p class="reasons-label">Reasons will be shown</p>'
+    + '<ol>'
+    +   '<li>मुझे आगे की प्रक्रिया समझ नहीं आ रही</li>'
+    +   '<li>गलत पते पर बुक कर दिया</li>'
+    +   '<li>अभी जरूरत नहीं है</li>'
+    +   '<li>कोई अन्य कारण</li>'
+    + '</ol>'
+    + '</div>'
+    + '<button class="hub-cta" data-link="6">Continue</button>';
+  anchor.parentNode.insertBefore(s, anchor);
+})();
+
 buildTerminalChatScreen('Cancellation Confirmed', '3', 'आपकी बुकिंग कैंसिल कर दी गई है।\n\nअगर आप दोबारा कोशिश करना चाहें,\nतो हम इस बार आपको बेहतर अनुभव देने की पूरी कोशिश करेंगे');
 buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिंग जारी है और ₹100 का बुकिंग अमाउंट सुरक्षित है।\n\nऔर किसी मदद के लिए हम यहीं हैं।');
 
@@ -2347,7 +2463,7 @@ buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिं�
 })();
 
 // Build reschedule loading screen + chat ack
-buildYellowScreen('Address Change Journey', 'User will go through the existing address change journey to update the address', 'Continue', '10', document.querySelector('.screen[data-label="Address — Updating"]'));
+buildYellowScreen('Address Change Journey', 'User will go through the existing address change journey to update the address', 'Continue', '11', document.querySelector('.screen[data-label="Address — Updating"]'));
 
 (function buildRescheduleScreens() {
   var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
@@ -2381,7 +2497,7 @@ buildYellowScreen('Address Change Journey', 'User will go through the existing a
   src.parentNode.insertBefore(ack, firstOption);
 })();
 
-buildYellowScreen('Reschedule Journey', 'User will go through the new rescheduling flow created by jyoti', 'Continue', '13', document.querySelector('.screen[data-label="Reschedule — Updating"]'));
+buildYellowScreen('Reschedule Journey', 'User will go through the new rescheduling flow created by jyoti', 'Continue', '14', document.querySelector('.screen[data-label="Reschedule — Updating"]'));
 
 buildTerminalChatScreen('Process Info — Acknowledged', '5', 'भरोसा बनाए रखने के लिए शुक्रिया\n\nहम आपके लिए इंजीनियर ढूंढ रहे हैं।\nमिलते ही आपको तुरंत बता देंगे।');
 
@@ -2430,6 +2546,21 @@ buildTerminalChatScreen('Complaint Registered', '6', 'PLACEHOLDER');
   var dm = document.getElementById('delayInfoModal');
   var screenArea = document.querySelector('.screen-area');
   if (dm && screenArea) screenArea.appendChild(dm);
+})();
+
+// Delay Variant Picker (yellow screen) — shown before the delay popup, lets user choose which variant to see
+(function buildDelayVariantPicker() {
+  var anchor = document.getElementById('runtimeAnchor');
+  if (!anchor) return;
+  var s = document.createElement('div');
+  s.className = 'screen yellow-screen delay-variant-picker';
+  s.dataset.label = 'Delay — Variant Picker';
+  s.innerHTML = '<h2 class="delay-picker-title">The user will see different variants based on whether there is a delay from our end or if the user feels the process is delayed.</h2>'
+    + '<div class="delay-picker-list">'
+    +   '<button class="hub-cta" data-show-delay-variant="genuine">Genuine Delay</button>'
+    +   '<button class="hub-cta" data-show-delay-variant="not-genuine">There\'s no Delay</button>'
+    + '</div>';
+  anchor.parentNode.insertBefore(s, anchor);
 })();
 
 var screens = document.querySelectorAll('.screen');
@@ -2567,13 +2698,14 @@ document.querySelectorAll('[data-open-modal]').forEach(function(el) {
 // Inject target depends on the destination chat (driven by the CTA's data-link)
 var injectByLink = {
   '4': { anchorId: 'wiomMsgReveal', position: 'after' },     // stays on Sent + Wiom typing chat
-  '5': { anchorId: 'wiomMsgReveal', position: 'after' },     // navigates to reasons; reply lands in same chat
-  '6': { anchorId: 'wiomTypingDots2', position: 'before' },  // wait — Wait acknowledged
-  '7': { anchorId: 'wiomTypingDots3', position: 'before' },  // cancel — Cancellation Confirmed
-  '8': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking
-  '9': { anchorId: 'addrChatAnchor', position: 'before' },   // address change — lands in address chat
-  '12': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in reschedule chat
-  '15': { anchorId: 'wiomTypingDots5', position: 'before' },      // process info — lands in process info ack chat
+  '5': { anchorId: 'wiomMsgReveal', position: 'after' },     // अपनी समस्या बताएं → Reasons-intro yellow; reply lands in same chat
+  '6': { anchorId: 'wiomMsgReveal', position: 'after' },     // navigates to reasons; reply lands in same chat
+  '7': { anchorId: 'wiomTypingDots2', position: 'before' },  // wait — Wait acknowledged
+  '8': { anchorId: 'wiomTypingDots3', position: 'before' },  // cancel — Cancellation Confirmed
+  '9': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking
+  '10': { anchorId: 'addrChatAnchor', position: 'before' },  // address change — lands in address chat
+  '13': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in reschedule chat
+  '16': { anchorId: 'wiomTypingDots5', position: 'before' },      // process info — lands in process info ack chat
   // '17': { anchorId: 'wiomTypingDots6', position: 'before' },    // समस्या बताएं → was call → complaint (calling feature commented out)
   // '18': { anchorId: 'wiomTypingDots6', position: 'before' }     // end call → complaint (commented)
 };
@@ -2640,6 +2772,17 @@ document.querySelectorAll('[data-link][data-inject-quote]').forEach(function(btn
   });
 });
 
+// Delay variant picker buttons → apply variant, navigate to Reasons, then open delayInfoModal over it
+document.querySelectorAll('[data-show-delay-variant]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var variant = btn.dataset.showDelayVariant;
+    if (typeof applyDelayVariant === 'function') applyDelayVariant(variant);
+    show(5); // index 5 = Reasons screen
+    var dm = document.getElementById('delayInfoModal');
+    if (dm) dm.classList.add('show');
+  });
+});
+
 // Chain-modal: when one modal closes via this CTA, open another (with optional variant) instead of navigating
 // (no variant switcher shown — the chained popup is fixed to the configured variant)
 document.querySelectorAll('[data-chain-modal]').forEach(function(btn) {
@@ -2659,14 +2802,14 @@ var delayVariants = {
   'genuine': {
     title: 'आपकी बुकिंग कन्फर्म है',
     body: 'हम आपकी कनेक्शन जल्दी शुरू करने पर काम कर रहे हैं,\nबस थोड़ा सा इंतज़ार और।',
-    primary: { text: 'इंतेजार करें', link: '6' },
-    secondary: { text: 'बुकिंग कैंसिल करें', link: '7' }
+    primary: { text: 'इंतेजार करें', link: '7' },
+    secondary: { text: 'बुकिंग कैंसिल करें', link: '8' }
   },
   'not-genuine': {
     title: 'बुकिंग कैंसिल करने पर ₹100 वापस नहीं मिलेगा।\nक्या आप फिर भी कैंसिल करना चाहते हैं?',
     body: null,
-    primary: { text: 'हाँ, कैंसिल करें', link: '7' },
-    secondary: { text: 'नहीं, बुकिंग जारी रखे', link: '8' }
+    primary: { text: 'हाँ, कैंसिल करें', link: '8' },
+    secondary: { text: 'नहीं, बुकिंग जारी रखे', link: '9' }
   }
 };
 function applyDelayVariant(key) {
@@ -2690,7 +2833,7 @@ document.querySelectorAll('.variant-btn').forEach(function(btn) {
     document.querySelectorAll('.variant-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
     applyDelayVariant(btn.dataset.variant);
-    show(4);
+    show(5);
     var modal = document.getElementById('delayInfoModal');
     if (modal) {
       modal.classList.add('show');
@@ -2735,7 +2878,7 @@ document.querySelectorAll('[data-reason]').forEach(function(opt) {
     }
     var modal = document.getElementById('otherReasonModal');
     if (modal) modal.classList.remove('show');
-    var tgt = injectByLink['7'];
+    var tgt = injectByLink['8'];
     if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'क्या समस्या आ रही है', ta.value.trim());
     // Chain into not-genuine-delay popup instead of going straight to cancellation (no switcher)
     setTimeout(function() {
@@ -2838,6 +2981,19 @@ function updateNavActive() {
 }
 updateNavActive();
 
+// === Mobile fit: scale the phone-frame to fill the viewport on mobile ===
+function fitPhoneToViewport() {
+  var phone = document.querySelector('.phone-frame');
+  if (!phone) return;
+  if (window.innerWidth > 768) { phone.style.transform = ''; return; }
+  var scale = Math.min(window.innerWidth / 360, window.innerHeight / 720);
+  phone.style.transform = 'scale(' + scale + ')';
+  phone.style.transformOrigin = 'center';
+}
+window.addEventListener('resize', fitPhoneToViewport);
+window.addEventListener('orientationchange', fitPhoneToViewport);
+fitPhoneToViewport();
+
 // === Apply URL hash target on load (set by sidepanel clicks before reload) ===
 (function applyHashTarget() {
   var hash = window.location.hash.replace('#', '');
@@ -2859,6 +3015,10 @@ updateNavActive();
         }
       }
     }, 50);
+  }
+  // Clear the hash so a manual refresh always starts at screen 1
+  if (history && history.replaceState) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 })();
 </script>
