@@ -479,6 +479,9 @@ body {
   font-weight: 600;
 }
 
+/* Ex-full-modals converted to screens at runtime keep their light bg */
+.full-modal-screen { background: #faf9fc; }
+
 /* ===== Full-screen modal (process info / stepper) ===== */
 .full-modal {
   position: absolute;
@@ -505,6 +508,18 @@ body {
   color: #161021;
 }
 .full-modal-back svg { width: 24px; height: 24px; }
+.full-modal-help {
+  position: absolute;
+  top: 16px; right: 16px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d9008d;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
 .full-modal-title {
   font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
   font-weight: 700;
@@ -557,6 +572,49 @@ body {
 .reason-error.show { display: inline; }
 .reason-counter { color: #665e75; }
 .reason-counter.over { color: #d92130; }
+
+/* Plan list (price modal) */
+.plan-subtext {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.plan-subtext-item {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 13.5px; color: #161021; line-height: 1.45;
+  padding-left: 14px; position: relative;
+}
+.plan-subtext-item::before {
+  content: '•';
+  position: absolute; left: 0; top: 0;
+  color: #d9008d; font-weight: 700;
+}
+.plan-table {
+  border: 1px solid #e8e4f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.plan-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e4f0;
+}
+.plan-row:last-child { border-bottom: none; }
+.plan-days {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 15px; font-weight: 700; color: #161021;
+}
+.plan-row .plan-meta {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 12px; color: #665e75; margin-top: 2px;
+}
+.plan-price {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 16px; font-weight: 700; color: #d9008d;
+}
 
 /* Comparison table */
 .compare-table {
@@ -617,11 +675,11 @@ body {
   align-items: center;
 }
 .stepper-dot {
-  width: 14px; height: 14px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   background: #e8e4f0;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .stepper-line {
   flex: 1;
@@ -651,6 +709,22 @@ body {
   background: #008043;
   animation: stepperPulse 1.4s ease-out infinite;
 }
+/* Hierarchy: main categories vs sub-steps */
+.stepper-text-main { font-weight: 600; font-size: 14px; line-height: 20px; }
+.stepper-step.substep { min-height: auto; }
+.stepper-step.substep .stepper-text { padding-left: 12px; padding-bottom: 10px; font-size: 12.5px; color: #665e75; }
+.stepper-step.substep.current .stepper-text { color: #161021; }
+.stepper-step.substep .stepper-dot { width: 8px; height: 8px; margin-top: 6px; }
+.stepper-desc {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 17px;
+}
+.stepper-desc .desc-grey { color: #665e75; }
+.stepper-desc .desc-black { color: #161021; font-weight: 500; }
 @keyframes stepperPulse {
   0%   { box-shadow: 0 0 0 0 rgba(0, 128, 67, 0.55); }
   70%  { box-shadow: 0 0 0 14px rgba(0, 128, 67, 0); }
@@ -723,90 +797,162 @@ body {
   margin-top: -8px;
 }
 
-/* ===== Call screen ===== */
-.call-screen {
-  background: linear-gradient(180deg, #d9008d 0%, #5e0e3e 60%, #1c0a14 100%);
-  color: #fff;
-  position: relative;
+/* ===== Persona / context intro screen ===== */
+.persona-screen { background: #ffd888; }
+.persona-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 12px;
   display: flex;
   flex-direction: column;
+  gap: 18px;
 }
-.call-screen .call-status-bar {
-  height: 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 4px 16px 0; font-size: 12px;
-  font-family: 'Roboto', sans-serif; font-weight: 500;
-  color: #fff; flex-shrink: 0;
+.persona-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.persona-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.persona-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
 }
-.call-info {
-  flex: 1;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 16px;
-  padding-top: 60px;
+.persona-text-block { flex: 1; min-width: 0; }
+.persona-q-tag {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px; font-weight: 700; color: #161021;
+  margin-bottom: 4px;
 }
-.call-avatar {
-  width: 112px; height: 112px;
+.persona-name {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 23px; font-weight: 700; color: #d9008d;
+  margin-bottom: 6px; line-height: 1.1;
+}
+.persona-bio {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 13px; font-weight: 500; color: #161021; line-height: 1.4;
+}
+.persona-photo {
+  width: 72px; height: 72px;
   border-radius: 50%;
-  background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.25);
-}
-.call-avatar svg { width: 64px; height: 36px; }
-.call-name {
-  font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
-  font-size: 32px; font-weight: 600; color: #fff;
-}
-.call-status {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px; color: rgba(255,255,255,0.85);
-  letter-spacing: 0.3px;
-}
-.call-actions {
-  padding: 0 24px 36px;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 32px;
+  background: linear-gradient(135deg, #b48a64 0%, #5a3a25 100%);
   flex-shrink: 0;
-}
-.call-action-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px 32px;
-  width: 100%;
-}
-.call-action {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 8px;
-  cursor: default;
-}
-.call-action-btn {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.18);
+  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   color: #fff;
-  backdrop-filter: blur(10px);
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 18px; font-weight: 700;
 }
-.call-action-btn svg { width: 26px; height: 26px; }
-.call-action-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  color: rgba(255,255,255,0.85);
+.persona-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.persona-qa { display: flex; flex-direction: column; gap: 6px; }
+.persona-question {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px; font-weight: 700; color: #161021; line-height: 1.35;
 }
-.call-end-btn {
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  background: #ff3b3b;
+.persona-answer {
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 13px; font-weight: 500; color: #d9008d; line-height: 1.5;
+}
+.persona-cta {
+  margin: 0 16px 16px;
+  background: #2a2a2a; color: #fff;
   border: none;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff;
+  padding: 14px 20px;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border-radius: 14px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(255,59,59,0.45);
-  transition: transform 0.15s;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
-.call-end-btn:hover { transform: scale(1.06); }
-.call-end-btn svg { width: 30px; height: 30px; }
+.persona-cta:hover { background: #444; }
+
+/* ===== Yellow placeholder screens (mirrors hub style) ===== */
+.yellow-screen {
+  background: #ffd888;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 40px;
+}
+.yellow-screen-msg {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #161021;
+  text-align: center;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* ===== Call screen (image-based) ===== */
+.call-screen {
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+  display: block !important;  /* override .screen flex */
+}
+.call-screen img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== Left-side jump nav panel ===== */
+.nav-panel {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: 240px;
+  background: rgba(20, 14, 30, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px 12px;
+  overflow-y: auto;
+  z-index: 200;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+}
+.nav-panel::-webkit-scrollbar { width: 4px; }
+.nav-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.nav-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin: 0 4px 10px;
+}
+.nav-list { list-style: none; padding: 0; margin: 0; }
+.nav-list li { margin-bottom: 2px; }
+.nav-list button {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.78);
+  text-align: left;
+  cursor: pointer;
+  padding: 6px 8px;
+  width: 100%;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-family: inherit;
+  line-height: 1.35;
+  transition: background 0.12s, color 0.12s;
+}
+.nav-list button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-list .nav-modal button {
+  padding-left: 22px;
+  color: rgba(255,180,220,0.7);
+  font-size: 11px;
+}
+.nav-list .nav-modal button:hover { background: rgba(217,0,141,0.18); color: #fff; }
+.nav-list button.nav-active {
+  background: rgba(217,0,141,0.45);
+  color: #fff;
+  font-weight: 600;
+}
 
 /* Quick-nav (top of viewport) */
 .quick-nav {
@@ -1129,33 +1275,6 @@ body {
 }
 .bk-user-msg .meta svg { width: 12px; height: 12px; color: #008043; }
 
-/* ===== PLACEHOLDER OPTION SCREEN ===== */
-.option-screen { background: #faf9fc; position: relative; }
-.option-topbar {
-  height: 56px;
-  display: flex; align-items: center; padding: 0 16px; gap: 12px;
-  flex-shrink: 0;
-}
-.option-back { width: 24px; height: 24px; cursor: pointer; color: #161021; }
-.option-topbar-title { font-size: 16px; font-weight: 600; color: #161021; }
-.option-content {
-  flex: 1; padding: 24px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center;
-}
-.option-tag {
-  font-size: 12px; font-weight: 600; color: #d9008d;
-  letter-spacing: 1px; text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.option-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 26px; font-weight: 600; color: #161021;
-  line-height: 1.25; margin-bottom: 12px;
-}
-.option-desc {
-  font-size: 14px; color: #665e75; line-height: 1.6; max-width: 280px;
-}
 </style>
 </head>
 <body>
@@ -1167,17 +1286,35 @@ body {
 <div class="phone-frame">
   <div class="screen-area">
 
-    <!-- Screen 1: Cancellation Flow Hub -->
-    <div class="screen hub-screen active" data-label="Cancellation Flow — Hub">
-      <div class="status-bar">
-        <span class="time">01:25</span>
-        <span class="icons">📶 📡 🔋</span>
+    <!-- Screen 1: Persona / context -->
+    <div class="screen persona-screen active" data-label="">
+      <div class="persona-scroll">
+        <div class="persona-header">
+          <div class="persona-text-block">
+            <div class="persona-q-tag">यूजर कौन है?</div>
+            <div class="persona-name">रमेश शर्मा</div>
+            <div class="persona-bio">शर्मा परिवार के मुखिया।<br>घर के लिए भरोसेमंद और किफायती इंटरनेट लगवाना चाहते हैं।</div>
+          </div>
+          <div class="persona-photo"><img src="ramesh.jpg" alt="Ramesh Sharma"></div>
+        </div>
+        <div class="persona-qa">
+          <div class="persona-question">रमेश जी इस स्क्रीन पर क्यों आए?</div>
+          <div class="persona-answer">रमेश जी ने बुकिंग कैंसिल करने का सोचा और चैट में आए।<br>उन्हें लग रहा है कि कुछ ठीक नहीं है या आगे की प्रक्रिया स्पष्ट नहीं है।<br>इसलिए वे अपनी समस्या बताकर निर्णय लेना चाहते हैं।</div>
+        </div>
+        <div class="persona-qa">
+          <div class="persona-question">इस स्टेप से पहले क्या कर रहे थे?</div>
+          <div class="persona-answer">रमेश जी ने ₹100 का भुगतान किया और बुकिंग शुरू की।<br>कुछ स्टेप पूरे किए, लेकिन उन्हें पूरी स्पष्टता नहीं मिली।<br>जिससे उन्हें संदेह और रुकावट महसूस हुई।</div>
+        </div>
+        <div class="persona-qa">
+          <div class="persona-question">इस स्टेप के बाद क्या करेंगे?</div>
+          <div class="persona-answer">अगर उनकी समस्या का हल मिल जाता है, तो वे बुकिंग जारी रखेंगे।<br>अगर उन्हें भरोसा नहीं बनता, तो वे बुकिंग कैंसिल कर देंगे।</div>
+        </div>
+        <div class="persona-qa">
+          <div class="persona-question">सबसे अच्छे डिज़ाइन में कैसा महसूस होगा?</div>
+          <div class="persona-answer">उन्हें लगेगा कि उनकी बात तुरंत समझी गई।<br>हर समस्या का आसान हल मिला और सब कुछ स्पष्ट है।<br>वे बिना उलझन के सही फैसला ले पाएंगे।</div>
+        </div>
       </div>
-      <div class="hub-center">
-        <h1 class="hub-title">Cancellation Retention Flow</h1>
-        <button class="hub-cta" data-target="2">Start</button>
-      </div>
-      <div class="hub-bottom-glow"></div>
+      <button class="persona-cta" data-link="2">ऐप चालू करें</button>
     </div>
 
     <!-- Screen 2: Booking Confirmed (Wiom chat) -->
@@ -1660,28 +1797,18 @@ body {
             <div class="content-box">
               <p class="text">व्योम से संपर्क करने के लिए धन्यवाद!
 
-अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं
-ताकि आपको कैंसिल करने की ज़रूरत न पड़े</p>
+अगर आपको बुकिंग मे कोई दिक्कत आ रही है या कोई शंका है तो हम उसे ठीक करने की कोशिश कर सकते हैं
+
+ताकि आपको बुकिंग कैंसिल करने की ज़रूरत न पड़े</p>
               <span class="timestamp">10:15 AM</span>
             </div>
             <div class="divider"></div>
-            <div class="chat-cta cta-pink" data-link="14"><span class="chat-cta-text">समस्या बताएं</span></div>
-            <div class="divider"></div>
-            <div class="chat-cta" data-open-modal="cancelConfirm"><span class="chat-cta-text">नहीं, बुकिंग कैंसिल करें</span></div>
+            <div class="chat-cta cta-pink" data-link="5" data-inject-quote="व्योम से संपर्क करने के लिए धन्यवाद! अगर आपको बुकिंग मे कोई दिक्कत आ रही है या कोई शंका है..."><span class="chat-cta-text">अपनी समस्या बताएं</span></div>
           </div>
         </div>
       </div>
 
-      <!-- Cancel confirmation modal -->
-      <div class="bk-modal-overlay" id="cancelConfirm" data-modal>
-        <div class="bk-modal-card">
-          <h3 class="bk-modal-title">बुकिंग कैंसल करने पर ₹100 वापस नहीं मिलेगा।<br>क्या आप फिर भी कैंसल करना चाहते हैं?</h3>
-          <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="8">नहीं, जारी रखें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="5">हाँ, कैंसल करें</button>
-          </div>
-        </div>
-      </div>
+      <!-- Cancel confirmation modal — removed (chat CTA now navigates directly to reasons) -->
 
       <!-- Typing field (back to empty/disabled) -->
       <div class="bk-typing" data-link="3">
@@ -1715,12 +1842,16 @@ body {
         </div>
       </div>
 
-      <h1 class="reason-title">बुकिंग कैंसिल क्यों करना चाहते हैं?</h1>
+      <h1 class="reason-title">क्या समस्या आ रही है</h1>
 
       <div class="reason-list">
-        <div class="reason-option" data-reason data-open-modal="delayInfoModal">
+        <div class="reason-option" data-reason data-link="16">
           <div class="reason-radio"></div>
-          <span class="reason-text">नेट लगने में देरी हो रही है</span>
+          <span class="reason-text">मुझे आगे की प्रक्रिया समझ नहीं आ रही</span>
+        </div>
+        <div class="reason-option" data-reason data-link="17">
+          <div class="reason-radio"></div>
+          <span class="reason-text">कीमत ज़्यादा लग रही है</span>
         </div>
         <div class="reason-option" data-reason data-open-modal="addressChangeModal">
           <div class="reason-radio"></div>
@@ -1730,19 +1861,15 @@ body {
           <div class="reason-radio"></div>
           <span class="reason-text">मैं इस समय उपलब्ध नहीं हूँ</span>
         </div>
-        <div class="reason-option" data-reason data-open-modal="processInfoModal">
+        <div class="reason-option" data-reason data-open-modal="delayInfoModal">
           <div class="reason-radio"></div>
-          <span class="reason-text">मुझे आगे की प्रक्रिया समझ नहीं आ रही</span>
+          <span class="reason-text">नेट लगने में देरी हो रही है</span>
         </div>
-        <div class="reason-option" data-reason data-open-modal="priceCompareModal">
-          <div class="reason-radio"></div>
-          <span class="reason-text">कीमत ज़्यादा लग रही है</span>
-        </div>
-        <div class="reason-option" data-reason data-link="7">
+        <div class="reason-option" data-reason data-open-modal="needHelpModal">
           <div class="reason-radio"></div>
           <span class="reason-text">अभी जरूरत नहीं है</span>
         </div>
-        <div class="reason-option" data-reason data-open-modal="otherReasonModal">
+        <div class="reason-option" data-reason data-link="18">
           <div class="reason-radio"></div>
           <span class="reason-text">कोई अन्य कारण</span>
         </div>
@@ -1753,12 +1880,12 @@ body {
         <div class="bk-modal-card">
           <div class="bk-modal-text">
             <h3 class="bk-modal-title">आपकी बुकिंग कन्फर्म है</h3>
-            <p class="bk-modal-body">आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है।
-बस थोड़ा सा इंतज़ार—जल्द ही नेट चालू होगा।</p>
+            <p class="bk-modal-body">हम आपकी कनेक्शन जल्दी शुरू करने पर काम कर रहे हैं,
+बस थोड़ा सा इंतज़ार और।</p>
           </div>
           <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="6">इंतज़ार करें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैंसल करें</button>
+            <button class="bk-modal-cta primary" data-modal-close data-link="6">इंतेजार करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -1766,10 +1893,10 @@ body {
       <!-- Address change modal (triggered by reason 2) -->
       <div class="bk-modal-overlay" id="addressChangeModal" data-modal>
         <div class="bk-modal-card">
-          <h3 class="bk-modal-title">आप अपना पता आसानी से बदल सकते हैं<br>आपकी बुकिंग सुरक्षित है</h3>
+          <h3 class="bk-modal-title">आप नेट लगाने का पता आसानी से बदल सकते है, आपकी बुकिंग पूरी तरह सुरक्षित रहेगी</h3>
           <div class="bk-modal-actions">
             <button class="bk-modal-cta primary" data-modal-close data-link="9">पता बदलें</button>
-            <button class="bk-modal-cta secondary" data-modal-close>सपोर्ट से मदद लें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -1777,52 +1904,64 @@ body {
       <!-- Process info full-screen modal (triggered by reason 4) -->
       <div class="full-modal" id="processInfoModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-modal-close aria-label="Close">
+          <button class="full-modal-back" data-link="5" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
+          <button class="full-modal-help">मदद लें</button>
           <h2 class="full-modal-title">हम आपको आसान तरीके से समझाते हैं</h2>
         </div>
         <div class="full-modal-content">
           <div class="stepper">
             <div class="stepper-step done">
               <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
-              <div class="stepper-text">आप बुकिंग करते हैं</div>
+              <div class="stepper-text"><span class="stepper-text-main">आप बुकिंग करते हैं</span></div>
             </div>
-            <div class="stepper-step current">
+            <div class="stepper-step current substep">
               <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
-              <div class="stepper-text">इंजीनियर असाइन होता है<div class="stepper-now">अभी आप यहाँ हैं</div></div>
+              <div class="stepper-text">हम आपके लिए इंजीनियर ढूंढते हैं<div class="stepper-now">अभी आप यहाँ हैं</div></div>
             </div>
-            <div class="stepper-step upcoming">
+            <div class="stepper-step upcoming substep">
               <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
-              <div class="stepper-text">वह तय समय पर आकर नेट बॉक्स लगाता है</div>
-            </div>
-            <div class="stepper-step upcoming">
-              <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
-              <div class="stepper-text">नेट चालू हो जाता है (शुरुआत में 2 दिन का ट्रायल)</div>
+              <div class="stepper-text">इंजीनियर आपके द्वारा तय समय पर आकर नेट बॉक्स लगाता है</div>
             </div>
             <div class="stepper-step upcoming">
               <div class="stepper-marker"><div class="stepper-dot"></div><div class="stepper-line"></div></div>
-              <div class="stepper-text">इसके बाद आप अपने हिसाब से रिचार्ज करते हैं</div>
+              <div class="stepper-text">
+                <span class="stepper-text-main">नेट बॉक्स लगने के बाद आप अपनी मर्जी का रिचार्ज करते हैं</span>
+                <div class="stepper-desc">
+                  <div class="desc-grey">बिल्कुल मोबाइल रिचार्ज की तरह</div>
+                  <div class="desc-black">₹23 — 1 दिन</div>
+                  <div class="desc-black">₹100 — 7 दिन</div>
+                  <div class="desc-grey">जितने दिन चाहें, उतना ही रिचार्ज</div>
+                </div>
+              </div>
             </div>
             <div class="stepper-step upcoming">
               <div class="stepper-marker"><div class="stepper-dot"></div></div>
-              <div class="stepper-text">और आराम से नेट का इस्तेमाल करते हैं</div>
+              <div class="stepper-text">
+                <span class="stepper-text-main">फिर आप पूरे परिवार के साथ नेट का मज़ा लेते हैं</span>
+                <div class="stepper-desc">
+                  <div class="desc-black">बीच में डाटा रुकने का डर नहीं</div>
+                  <div class="desc-grey">मोबाइल • लैपटॉप • टीवी</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div class="full-modal-actions">
-          <button class="bk-modal-cta primary" data-modal-close data-link="13">समझ गया</button>
-          <button class="bk-modal-cta secondary" data-modal-close>सपोर्ट से बात करें</button>
+          <button class="bk-modal-cta primary" data-modal-close data-link="15" data-inject-quote="हम आपको आसान तरीके से समझाते हैं — पूरी प्रक्रिया">समझ गया</button>
+          <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">मुझे बुकिंग कैंसिल करनी है</button>
         </div>
       </div>
 
       <!-- Other reason full-screen modal (triggered by reason 7) -->
       <div class="full-modal" id="otherReasonModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-modal-close aria-label="Close">
+          <button class="full-modal-back" data-link="5" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          <h2 class="full-modal-title">बुकिंग कैन्सल करने का करना नीचे लिखें</h2>
+          <button class="full-modal-help">मदद लें</button>
+          <h2 class="full-modal-title" style="text-align: right;">बुकिंग कैंसिल करने का करना नीचे लिखें</h2>
         </div>
         <div class="full-modal-content">
           <textarea class="reason-textarea" placeholder="अपना कारण यहाँ लिखें" maxlength="200"></textarea>
@@ -1832,7 +1971,7 @@ body {
           </div>
         </div>
         <div class="full-modal-actions">
-          <button class="bk-modal-cta primary" data-submit-reason>बुकिंग कैन्सल करें</button>
+          <button class="bk-modal-cta primary" data-submit-reason>बुकिंग कैंसिल करें</button>
           <button class="bk-modal-cta secondary" data-modal-close>वापस जाएं</button>
         </div>
       </div>
@@ -1840,49 +1979,54 @@ body {
       <!-- Price comparison full-screen modal (triggered by reason 5) -->
       <div class="full-modal" id="priceCompareModal" data-modal>
         <div class="full-modal-header">
-          <button class="full-modal-back" data-modal-close aria-label="Close">
+          <button class="full-modal-back" data-link="5" aria-label="Back">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
-          <h2 class="full-modal-title">क्या वाकई कीमत ज़्यादा है?</h2>
+          <h2 class="full-modal-title">व्योम मे नेट का खर्च आपके कंट्रोल में है</h2>
         </div>
         <div class="full-modal-content">
-          <div class="compare-table">
-            <div class="compare-row head">
-              <div class="compare-cell"></div>
-              <div class="compare-cell wiom">WIOM</div>
-              <div class="compare-cell">Jio / Airtel</div>
+          <div class="plan-subtext">
+            <div class="plan-subtext-item">₹23/दिन से शुरू करें</div>
+            <div class="plan-subtext-item">पूरे महीने का प्लान लेना ज़रूरी नहीं</div>
+            <div class="plan-subtext-item">जब चाहें, जितना चाहें — उतना ही रिचार्ज करें</div>
+          </div>
+          <div class="plan-table">
+            <div class="plan-row">
+              <div><div class="plan-days">1 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
+              <div class="plan-price">₹23</div>
             </div>
-            <div class="compare-row">
-              <div class="compare-cell">रिचार्ज</div>
-              <div class="compare-cell wiom">
-                <span class="value">₹23 / दिन</span>
-                <span class="sub">कम से कम 1 दिन</span>
-              </div>
-              <div class="compare-cell">
-                <span class="value">₹800</span>
-                <span class="sub">कम से कम 1 महीना</span>
-              </div>
+            <div class="plan-row">
+              <div><div class="plan-days">2 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
+              <div class="plan-price">₹45</div>
             </div>
-            <div class="compare-row">
-              <div class="compare-cell">लगवाने की कीमत</div>
-              <div class="compare-cell wiom"><span class="value">₹400</span></div>
-              <div class="compare-cell"><span class="value">₹2,500</span></div>
+            <div class="plan-row">
+              <div><div class="plan-days">7 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
+              <div class="plan-price">₹150</div>
             </div>
-            <div class="compare-row">
-              <div class="compare-cell">स्पीड</div>
-              <div class="compare-cell wiom"><span class="value">बराबर</span></div>
-              <div class="compare-cell"><span class="value">बराबर</span></div>
+            <div class="plan-row">
+              <div><div class="plan-days">14 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
+              <div class="plan-price">₹300</div>
             </div>
-            <div class="compare-row">
-              <div class="compare-cell">नेट</div>
-              <div class="compare-cell wiom"><span class="value">अनलिमिटेड</span></div>
-              <div class="compare-cell"><span class="value">अनलिमिटेड</span></div>
+            <div class="plan-row">
+              <div><div class="plan-days">28 दिन</div><div class="plan-meta">अनलिमिटेड</div></div>
+              <div class="plan-price">₹500</div>
             </div>
           </div>
         </div>
         <div class="full-modal-actions">
-          <button class="bk-modal-cta primary" data-modal-close data-link="13">समझ गया</button>
-          <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैन्सल करें</button>
+          <button class="bk-modal-cta primary" data-modal-close data-link="15" data-inject-quote="व्योम मे नेट का खर्च आपके कंट्रोल में है">समझ गया</button>
+          <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">नहीं, बुकिंग कैंसिल करे</button>
+        </div>
+      </div>
+
+      <!-- Need-help modal (triggered by reason 6) -->
+      <div class="bk-modal-overlay" id="needHelpModal" data-modal>
+        <div class="bk-modal-card">
+          <h3 class="bk-modal-title">अगर आपको बुकिंग में कोई दिक्कत आ रही है, तो हमारी टीम आपकी मदद कर सकती है</h3>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close>सपोर्ट से बात करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">मुझे कैंसिल करना है</button>
+          </div>
         </div>
       </div>
 
@@ -1891,8 +2035,8 @@ body {
         <div class="bk-modal-card">
           <h3 class="bk-modal-title">आप अपने हिसाब से नया दिन / समय चुन सकते हैं</h3>
           <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="11">नया दिन/समय चुनें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="7">बुकिंग कैन्सल करें</button>
+            <button class="bk-modal-cta primary" data-modal-close data-link="12">नया दिन/समय चुनें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="delayInfoModal" data-chain-variant="not-genuine">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -2067,14 +2211,13 @@ body {
             <div class="content-box">
               <p class="text">व्योम से संपर्क करने के लिए धन्यवाद!
 
-अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं
-ताकि आपको कैंसिल करने की ज़रूरत न पड़े</p>
+अगर आपको बुकिंग मे कोई दिक्कत आ रही है या कोई शंका है तो हम उसे ठीक करने की कोशिश कर सकते हैं
+
+ताकि आपको बुकिंग कैंसिल करने की ज़रूरत न पड़े</p>
               <span class="timestamp">10:15 AM</span>
             </div>
             <div class="divider"></div>
-            <div class="chat-cta cta-pink disabled"><span class="chat-cta-text">समस्या बताएं</span></div>
-            <div class="divider"></div>
-            <div class="chat-cta disabled"><span class="chat-cta-text">नहीं, बुकिंग कैंसिल करें</span></div>
+            <div class="chat-cta cta-pink disabled"><span class="chat-cta-text">अपनी समस्या बताएं</span></div>
           </div>
         </div>
 
@@ -2109,47 +2252,8 @@ body {
       </div>
     </div>
 
-    <!-- Screen 7: Option 2 placeholder -->
-    <div class="screen option-screen" data-label="Option 2">
-      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
-      <div class="option-topbar">
-        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        <span class="option-topbar-title">Option 2</span>
-      </div>
-      <div class="option-content">
-        <div class="option-tag">Option 2</div>
-        <h2 class="option-title">Placeholder screen</h2>
-        <p class="option-desc">Replace this with the Option 2 design when ready.</p>
-      </div>
-    </div>
-
-    <!-- Screen 4: Option 3 placeholder -->
-    <div class="screen option-screen" data-label="Option 3">
-      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
-      <div class="option-topbar">
-        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        <span class="option-topbar-title">Option 3</span>
-      </div>
-      <div class="option-content">
-        <div class="option-tag">Option 3</div>
-        <h2 class="option-title">Placeholder screen</h2>
-        <p class="option-desc">Replace this with the Option 3 design when ready.</p>
-      </div>
-    </div>
-
-    <!-- Screen 5: Option 4 placeholder -->
-    <div class="screen option-screen" data-label="Option 4">
-      <div class="status-bar"><span class="time">01:25</span><span class="icons">📶 📡 🔋</span></div>
-      <div class="option-topbar">
-        <svg class="option-back" data-back viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        <span class="option-topbar-title">Option 4</span>
-      </div>
-      <div class="option-content">
-        <div class="option-tag">Option 4</div>
-        <h2 class="option-title">Placeholder screen</h2>
-        <p class="option-desc">Replace this with the Option 4 design when ready.</p>
-      </div>
-    </div>
+    <!-- Hidden sentinel — runtime IIFEs insert new screens before this -->
+    <span id="runtimeAnchor" hidden></span>
 
   </div>
 </div>
@@ -2157,8 +2261,8 @@ body {
 <!-- Variant switcher (right of phone, controls delay-modal body) -->
 <div class="variant-switcher">
   <div class="variant-switcher-label">Modal variant</div>
-  <button class="variant-btn active" data-variant="not-assigned">Engineer not assigned</button>
-  <button class="variant-btn" data-variant="assigned">Engineer assigned</button>
+  <button class="variant-btn active" data-variant="genuine">Genuine delay</button>
+  <button class="variant-btn" data-variant="not-genuine">Not genuine delay</button>
 </div>
 
 <div class="nav-controls">
@@ -2169,6 +2273,18 @@ body {
 <div class="screen-label" id="screenLabel">Cancellation Flow — Hub</div>
 
 <script>
+// Build a yellow placeholder screen (hub-style: yellow bg, centered message, dark CTA)
+function buildYellowScreen(label, message, ctaText, ctaLink, beforeEl) {
+  if (!beforeEl) beforeEl = document.getElementById('runtimeAnchor');
+  if (!beforeEl) return;
+  var s = document.createElement('div');
+  s.className = 'screen yellow-screen';
+  s.dataset.label = label;
+  s.innerHTML = '<div class="yellow-screen-msg">' + message + '</div>'
+    + '<button class="hub-cta" data-link="' + ctaLink + '">' + ctaText + '</button>';
+  beforeEl.parentNode.insertBefore(s, beforeEl);
+}
+
 // Clone screen 6 (Wait — Wiom acknowledged) into a terminal chat screen with custom reveal text
 function buildTerminalChatScreen(label, idSuffix, revealText) {
   var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
@@ -2185,17 +2301,17 @@ function buildTerminalChatScreen(label, idSuffix, revealText) {
     if (t) t.textContent = revealText;
   }
   clone.querySelectorAll('[data-injected]').forEach(function(n) { n.remove(); });
-  var firstOption = document.querySelector('.screen.option-screen');
+  var firstOption = document.getElementById('runtimeAnchor');
   if (firstOption) src.parentNode.insertBefore(clone, firstOption);
   else src.parentNode.appendChild(clone);
 }
-buildTerminalChatScreen('Cancellation Confirmed', '3', 'आपकी बुकिंग कैंसल कर दी गई है।\n\nअगर आप दोबारा कोशिश करना चाहें, हम आपके लिए यहीं हैं, और इस बार बेहतर अनुभव देने की पूरी कोशिश करेंगे |');
+buildTerminalChatScreen('Cancellation Confirmed', '3', 'आपकी बुकिंग कैंसिल कर दी गई है।\n\nअगर आप दोबारा कोशिश करना चाहें,\nतो हम इस बार आपको बेहतर अनुभव देने की पूरी कोशिश करेंगे');
 buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिंग जारी है और ₹100 का बुकिंग अमाउंट सुरक्षित है।\n\nऔर किसी मदद के लिए हम यहीं हैं।');
 
 // Build the address-update loading screen + the resulting chat ack
 (function buildAddressScreens() {
   var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
-  var firstOption = document.querySelector('.screen.option-screen');
+  var firstOption = document.getElementById('runtimeAnchor');
   if (!src || !firstOption) return;
 
   // Loading screen
@@ -2231,9 +2347,11 @@ buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिं�
 })();
 
 // Build reschedule loading screen + chat ack
+buildYellowScreen('Address Change Journey', 'User will go through the existing address change journey to update the address', 'Continue', '10', document.querySelector('.screen[data-label="Address — Updating"]'));
+
 (function buildRescheduleScreens() {
   var src = document.querySelector('.screen.bk[data-label="Wait — Wiom acknowledged"]');
-  var firstOption = document.querySelector('.screen.option-screen');
+  var firstOption = document.getElementById('runtimeAnchor');
   if (!src || !firstOption) return;
 
   var load = document.createElement('div');
@@ -2263,44 +2381,55 @@ buildTerminalChatScreen('Continue Booking', '4', 'आपकी बुकिं�
   src.parentNode.insertBefore(ack, firstOption);
 })();
 
+buildYellowScreen('Reschedule Journey', 'User will go through the new rescheduling flow created by jyoti', 'Continue', '13', document.querySelector('.screen[data-label="Reschedule — Updating"]'));
+
 buildTerminalChatScreen('Process Info — Acknowledged', '5', 'भरोसा बनाए रखने के लिए शुक्रिया\n\nहम आपके लिए इंजीनियर ढूंढ रहे हैं।\nमिलते ही आपको तुरंत बता देंगे।');
 
-// Build call screen + complaint-registered chat ack
+// === Calling feature (commented out) ===
+/*
 (function buildCallAndComplaintScreens() {
-  var firstOption = document.querySelector('.screen.option-screen');
+  var firstOption = document.getElementById('runtimeAnchor');
   if (!firstOption) return;
   var call = document.createElement('div');
   call.className = 'screen call-screen';
   call.dataset.label = 'Calling Wiom';
-  call.innerHTML = ''
-    + '<div class="call-status-bar"><span>04:35 PM</span><span>📶 📡 🔋 50%</span></div>'
-    + '<div class="call-info">'
-    +   '<div class="call-avatar">'
-    +     '<svg viewBox="0 0 24 14" fill="none"><path d="M5 7c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zm10 0c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" stroke="#d9008d" stroke-width="1.8" fill="none"/></svg>'
-    +   '</div>'
-    +   '<div class="call-name">व्योम</div>'
-    +   '<div class="call-status">Calling…</div>'
-    + '</div>'
-    + '<div class="call-actions">'
-    +   '<div class="call-action-grid">'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5.3-3a5.3 5.3 0 0 1-10.6 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-1.7zM4.27 3 3 4.27l3 3V11a6 6 0 0 0 .31 1.95l1.55-1.55C7.94 11.27 7 11.66 7 11h.34l9.66 9.66 1.27-1.27L4.27 3z"/></svg></div><div class="call-action-label">mute</div></div>'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="1.4"/><circle cx="6" cy="6" r="1.4"/><circle cx="18" cy="6" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="6" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/><circle cx="12" cy="18" r="1.4"/><circle cx="6" cy="18" r="1.4"/><circle cx="18" cy="18" r="1.4"/></svg></div><div class="call-action-label">keypad</div></div>'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div><div class="call-action-label">speaker</div></div>'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="call-action-label">add</div></div>'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M22 8l-6 4 6 4V8z"/></svg></div><div class="call-action-label">video</div></div>'
-    +     '<div class="call-action"><div class="call-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div><div class="call-action-label">contacts</div></div>'
-    +   '</div>'
-    +   '<button class="call-end-btn" data-link="15" aria-label="End call"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46l-5.27-.61-2.52 2.52a15.05 15.05 0 0 1-6.59-6.59l2.53-2.53L8.54 3H3.03C2.45 13.18 10.82 21.55 21 20.97v-5.51z" transform="rotate(135 12 12)"/></svg></button>'
-    + '</div>';
+  call.dataset.link = '18';
+  call.innerHTML = '<img src="call-screen.png" alt="Calling Wiom +91 88803 22222" draggable="false">';
   firstOption.parentNode.insertBefore(call, firstOption);
 })();
-
 buildTerminalChatScreen('Complaint Registered', '6', 'PLACEHOLDER');
 (function customizeComplaintScreen() {
   var s = document.querySelector('.screen[data-label="Complaint Registered"]');
   if (!s) return;
   var t = s.querySelector('#wiomMsgReveal6 .text');
-  if (t) t.innerHTML = 'आपकी शिकायत "नेट ठीक से नहीं चल रहा" दर्ज हो गई है, हमारी टीम इसे जल्द से जल्द ठीक करने में लगी है।<br><br>जैसे ही कोई अपडेट मिलेगा, हम आपको तुरंत बता देंगे।<br><br><strong>टिकट ID:</strong> 662387';
+  if (t) t.innerHTML = 'आपकी शिकायत "नेट अभी तक नहीं लगा" दर्ज हो गई है, हमारी टीम इसे जल्द से जल्द ठीक करने में लगी है।<br><br>जैसे ही कोई अपडेट मिलेगा, हम आपको तुरंत बता देंगे।<br><br><strong>टिकट ID:</strong> 662387';
+})();
+*/
+
+// (Stage Picker screen removed — was unreachable after समस्या बताएं CTA was repurposed)
+
+// Convert the 3 full-screen modals (process info, price compare, other reason) to real screens,
+// and move delayInfoModal to screen-area level so popups can overlay any screen.
+(function convertFullModalsToScreens() {
+  var firstOption = document.getElementById('runtimeAnchor');
+  if (!firstOption) return;
+  var convert = [
+    { id: 'processInfoModal', label: 'Process Info — Stepper' },
+    { id: 'priceCompareModal', label: 'Price Compare — Plans' },
+    { id: 'otherReasonModal',  label: 'Other Reason — Form' }
+  ];
+  convert.forEach(function(cfg) {
+    var el = document.getElementById(cfg.id);
+    if (!el) return;
+    el.classList.remove('full-modal');
+    el.classList.add('screen', 'full-modal-screen');
+    el.removeAttribute('data-modal');
+    el.dataset.label = cfg.label;
+    firstOption.parentNode.insertBefore(el, firstOption);
+  });
+  var dm = document.getElementById('delayInfoModal');
+  var screenArea = document.querySelector('.screen-area');
+  if (dm && screenArea) screenArea.appendChild(dm);
 })();
 
 var screens = document.querySelectorAll('.screen');
@@ -2340,10 +2469,13 @@ function show(idx) {
   runTypingReveal('wiomTypingDots3', 'wiomMsgReveal3');
   runTypingReveal('wiomTypingDots4', 'wiomMsgReveal4');
   runTypingReveal('wiomTypingDots5', 'wiomMsgReveal5');
-  runTypingReveal('wiomTypingDots6', 'wiomMsgReveal6');
+  // runTypingReveal('wiomTypingDots6', 'wiomMsgReveal6'); // disabled with calling feature
 
   // Address/reschedule loading auto-transition
   if (screens[current].classList.contains('addr-screen')) startAddressProgress(screens[current]);
+
+  // Sync left-nav highlight
+  if (typeof updateNavActive === 'function') updateNavActive();
 }
 
 // === Address/reschedule loading progress + auto-advance ===
@@ -2413,9 +2545,6 @@ document.querySelectorAll('[data-link]').forEach(function(el) {
   });
 });
 
-document.querySelectorAll('[data-back]').forEach(function(el) {
-  el.addEventListener('click', function() { show(0); });
-});
 
 // === Modal open/close (with linked variant switcher for delayInfoModal) ===
 function toggleDelaySwitcher(modalId, on) {
@@ -2437,24 +2566,25 @@ document.querySelectorAll('[data-open-modal]').forEach(function(el) {
 // Map each modal to where its user-reply gets injected and what message to quote
 // Inject target depends on the destination chat (driven by the CTA's data-link)
 var injectByLink = {
-  '4': { anchorId: 'wiomMsgReveal', position: 'after' },     // stays on screen 4 chat
-  '5': { anchorId: 'wiomMsgReveal', position: 'after' },     // navigates to reasons; reply lands in screen 4
-  '6': { anchorId: 'wiomTypingDots2', position: 'before' },  // wait — screen 6
-  '7': { anchorId: 'wiomTypingDots3', position: 'before' },  // cancel — screen 7
-  '8': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking — screen 8
-  '9': { anchorId: 'addrChatAnchor', position: 'before' },   // address change — lands in screen 10 chat
-  '11': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in screen 12 chat
-  '13': { anchorId: 'wiomTypingDots5', position: 'before' },       // process info — lands in screen 13 chat
-  '14': { anchorId: 'wiomTypingDots6', position: 'before' },       // समस्या बताएं → call → complaint chat
-  '15': { anchorId: 'wiomTypingDots6', position: 'before' }        // end call → complaint chat
+  '4': { anchorId: 'wiomMsgReveal', position: 'after' },     // stays on Sent + Wiom typing chat
+  '5': { anchorId: 'wiomMsgReveal', position: 'after' },     // navigates to reasons; reply lands in same chat
+  '6': { anchorId: 'wiomTypingDots2', position: 'before' },  // wait — Wait acknowledged
+  '7': { anchorId: 'wiomTypingDots3', position: 'before' },  // cancel — Cancellation Confirmed
+  '8': { anchorId: 'wiomTypingDots4', position: 'before' },  // continue booking
+  '9': { anchorId: 'addrChatAnchor', position: 'before' },   // address change — lands in address chat
+  '12': { anchorId: 'rescheduleChatAnchor', position: 'before' }, // reschedule — lands in reschedule chat
+  '15': { anchorId: 'wiomTypingDots5', position: 'before' },      // process info — lands in process info ack chat
+  // '17': { anchorId: 'wiomTypingDots6', position: 'before' },    // समस्या बताएं → was call → complaint (calling feature commented out)
+  // '18': { anchorId: 'wiomTypingDots6', position: 'before' }     // end call → complaint (commented)
 };
 var modalReplyContext = {
-  cancelConfirm: { quote: 'व्योम से संपर्क करने के लिए धन्यवाद! अगर कोई दिक्कत है, तो हम उसे ठीक करने की कोशिश कर सकते हैं...' },
-  delayInfoModal: { quote: 'आपकी बुकिंग कन्फर्म है — आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है...' },
+  cancelConfirm: { quote: 'व्योम से संपर्क करने के लिए धन्यवाद! अगर कोई दिक्कत आ रही है तो हम उसे ठीक करने की कोशिश कर सकते हैं...' },
+  delayInfoModal: { quote: 'आपकी बुकिंग कन्फर्म है — नेट लगाने के लिए इंजीनियर ढूंढा जा रहा है...' },
   addressChangeModal: { quote: 'कोई बात नहीं — आप अपना पता आसानी से बदल सकते हैं, आपकी बुकिंग सुरक्षित है' },
   rescheduleModal: { quote: 'आप अपने हिसाब से नया दिन / समय चुन सकते हैं' },
   processInfoModal: { quote: 'हम आपको आसान तरीके से समझाते हैं — पूरी प्रक्रिया' },
-  priceCompareModal: { quote: 'क्या वाकई कीमत ज़्यादा है? — Wiom बनाम बड़ी कंपनियां' }
+  priceCompareModal: { quote: 'क्या वाकई कीमत ज़्यादा है? — Wiom बनाम बड़ी कंपनियां' },
+  needHelpModal: { quote: 'अगर आपको बुकिंग में कोई दिक्कत आ रही है तो हमारी टीम अभी आपकी मदद कर सकती है' }
 };
 function injectUserReply(anchorEl, position, quote, replyText) {
   if (!anchorEl) return;
@@ -2478,7 +2608,7 @@ document.querySelectorAll('[data-modal-close]').forEach(function(btn) {
     var modal = btn.closest('[data-modal]');
     if (modal) {
       var ctx = modalReplyContext[modal.id];
-      if (ctx) {
+      if (ctx && !btn.dataset.chainModal) {
         var link = btn.dataset.link || (modal.id === 'cancelConfirm' ? '4' : '6');
         var tgt = injectByLink[link] || injectByLink['4'];
         injectUserReply(document.getElementById(tgt.anchorId), tgt.position, ctx.quote, btn.textContent.trim());
@@ -2497,18 +2627,69 @@ document.querySelectorAll('[data-modal]').forEach(function(modal) {
   });
 });
 
+// Generic injection for non-modal CTAs that navigate to a chat (e.g. ex-modal screens)
+// Add data-inject-quote="…" on a [data-link] element to inject a quoted user-reply on click.
+document.querySelectorAll('[data-link][data-inject-quote]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var link = btn.dataset.link;
+    var tgt = injectByLink[link];
+    if (!tgt) return;
+    var quote = btn.dataset.injectQuote;
+    var replyText = (btn.textContent || '').trim();
+    injectUserReply(document.getElementById(tgt.anchorId), tgt.position, quote, replyText);
+  });
+});
+
+// Chain-modal: when one modal closes via this CTA, open another (with optional variant) instead of navigating
+// (no variant switcher shown — the chained popup is fixed to the configured variant)
+document.querySelectorAll('[data-chain-modal]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var nextId = btn.dataset.chainModal;
+    var variant = btn.dataset.chainVariant;
+    setTimeout(function() {
+      if (variant && typeof applyDelayVariant === 'function') applyDelayVariant(variant);
+      var m = document.getElementById(nextId);
+      if (m) m.classList.add('show');
+    }, 100);
+  });
+});
+
 // === Delay-modal variant switcher ===
-var delayVariantTexts = {
-  'not-assigned': "आपके कनेक्शन के लिए इंजीनियर असाइन किया जा रहा है।\nबस थोड़ा सा इंतज़ार—जल्द ही नेट चालू होगा।",
-  'assigned': "आपके कनेक्शन के लिए इंजीनियर असाइन हो गया है।\nवो जल्द ही आपके घर आकर नेट चालू करेगा।\nबस थोड़ा सा इंतज़ार करें—सब सेट हो जाएगा।"
+var delayVariants = {
+  'genuine': {
+    title: 'आपकी बुकिंग कन्फर्म है',
+    body: 'हम आपकी कनेक्शन जल्दी शुरू करने पर काम कर रहे हैं,\nबस थोड़ा सा इंतज़ार और।',
+    primary: { text: 'इंतेजार करें', link: '6' },
+    secondary: { text: 'बुकिंग कैंसिल करें', link: '7' }
+  },
+  'not-genuine': {
+    title: 'बुकिंग कैंसिल करने पर ₹100 वापस नहीं मिलेगा।\nक्या आप फिर भी कैंसिल करना चाहते हैं?',
+    body: null,
+    primary: { text: 'हाँ, कैंसिल करें', link: '7' },
+    secondary: { text: 'नहीं, बुकिंग जारी रखे', link: '8' }
+  }
 };
+function applyDelayVariant(key) {
+  var v = delayVariants[key];
+  var modal = document.getElementById('delayInfoModal');
+  if (!v || !modal) return;
+  var titleEl = modal.querySelector('.bk-modal-title');
+  var bodyEl = modal.querySelector('.bk-modal-body');
+  var primaryBtn = modal.querySelector('.bk-modal-cta.primary');
+  var secondaryBtn = modal.querySelector('.bk-modal-cta.secondary');
+  if (titleEl) titleEl.innerHTML = v.title.replace(/\n/g, '<br>');
+  if (bodyEl) {
+    if (v.body === null) { bodyEl.style.display = 'none'; }
+    else { bodyEl.style.display = ''; bodyEl.textContent = v.body; }
+  }
+  if (primaryBtn) { primaryBtn.textContent = v.primary.text; primaryBtn.dataset.link = v.primary.link; }
+  if (secondaryBtn) { secondaryBtn.textContent = v.secondary.text; secondaryBtn.dataset.link = v.secondary.link; }
+}
 document.querySelectorAll('.variant-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.variant-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    var key = btn.dataset.variant;
-    var body = document.querySelector('#delayInfoModal .bk-modal-body');
-    if (body && delayVariantTexts[key]) body.textContent = delayVariantTexts[key];
+    applyDelayVariant(btn.dataset.variant);
     show(4);
     var modal = document.getElementById('delayInfoModal');
     if (modal) {
@@ -2528,7 +2709,7 @@ document.querySelectorAll('[data-reason]').forEach(function(opt) {
     if (opt.dataset.link && injectByLink[opt.dataset.link]) {
       var tgt = injectByLink[opt.dataset.link];
       var replyText = opt.querySelector('.reason-text').textContent.trim();
-      injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'बुकिंग कैंसिल क्यों करना चाहते हैं?', replyText);
+      injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'क्या समस्या आ रही है', replyText);
     }
   });
 });
@@ -2555,8 +2736,13 @@ document.querySelectorAll('[data-reason]').forEach(function(opt) {
     var modal = document.getElementById('otherReasonModal');
     if (modal) modal.classList.remove('show');
     var tgt = injectByLink['7'];
-    if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'बुकिंग कैंसिल क्यों करना चाहते हैं?', ta.value.trim());
-    show(6); // index 6 = screen 7 (Cancellation Confirmed)
+    if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'क्या समस्या आ रही है', ta.value.trim());
+    // Chain into not-genuine-delay popup instead of going straight to cancellation (no switcher)
+    setTimeout(function() {
+      if (typeof applyDelayVariant === 'function') applyDelayVariant('not-genuine');
+      var dm = document.getElementById('delayInfoModal');
+      if (dm) dm.classList.add('show');
+    }, 100);
   });
 })();
 
@@ -2574,6 +2760,107 @@ area.addEventListener('touchend', function(e) {
 });
 
 prevBtn.disabled = true;
+
+// === Quick-jump nav panel (left side) ===
+var modalLabels = {
+  cancelConfirm: 'Cancel Confirm',
+  delayInfoModal: 'Delay Info (R1)',
+  addressChangeModal: 'Address Change (R2)',
+  rescheduleModal: 'Reschedule (R3)',
+  processInfoModal: 'Process Info (R4)',
+  priceCompareModal: 'Price Compare (R5)',
+  needHelpModal: 'Need Help (R6)',
+  otherReasonModal: 'Other Reason (R7)'
+};
+(function buildNavPanel() {
+  var panel = document.createElement('div');
+  panel.className = 'nav-panel';
+  var title = document.createElement('div');
+  title.className = 'nav-title';
+  title.textContent = 'Jump to';
+  panel.appendChild(title);
+  var list = document.createElement('ol');
+  list.className = 'nav-list';
+  Array.from(screens).forEach(function(screen, idx) {
+    var li = document.createElement('li');
+    var btn = document.createElement('button');
+    btn.dataset.navScreen = idx;
+    btn.textContent = (idx + 1) + (screen.dataset.label ? '. ' + screen.dataset.label : '');
+    li.appendChild(btn);
+    list.appendChild(li);
+    screen.querySelectorAll('[data-modal]').forEach(function(modal) {
+      var mli = document.createElement('li');
+      mli.className = 'nav-modal';
+      var mbtn = document.createElement('button');
+      mbtn.dataset.navModal = modal.id;
+      mbtn.dataset.navScreenForModal = idx;
+      mbtn.textContent = '↳ ' + (modalLabels[modal.id] || modal.id);
+      mli.appendChild(mbtn);
+      list.appendChild(mli);
+    });
+    // delayInfoModal is now at screen-area level (global popup); list it under Reasons
+    if (screen.classList.contains('reason-screen')) {
+      var dm = document.getElementById('delayInfoModal');
+      if (dm && !dm.closest('.screen')) {
+        var mli = document.createElement('li');
+        mli.className = 'nav-modal';
+        var mbtn = document.createElement('button');
+        mbtn.dataset.navModal = 'delayInfoModal';
+        mbtn.dataset.navScreenForModal = idx;
+        mbtn.textContent = '↳ ' + (modalLabels.delayInfoModal || 'delayInfoModal');
+        mli.appendChild(mbtn);
+        list.appendChild(mli);
+      }
+    }
+  });
+  panel.appendChild(list);
+  document.body.appendChild(panel);
+  // Sidepanel clicks reset the page (set hash + reload) so the target screen/modal is shown fresh
+  panel.addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var hash;
+    if (btn.dataset.navModal) {
+      hash = btn.dataset.navScreenForModal + ',' + btn.dataset.navModal;
+    } else if (btn.dataset.navScreen !== undefined) {
+      hash = btn.dataset.navScreen;
+    }
+    if (hash !== undefined) {
+      window.location.hash = hash;
+      window.location.reload();
+    }
+  });
+})();
+function updateNavActive() {
+  document.querySelectorAll('.nav-list button').forEach(function(b) { b.classList.remove('nav-active'); });
+  var a = document.querySelector('.nav-list button[data-nav-screen="' + current + '"]');
+  if (a) a.classList.add('nav-active');
+}
+updateNavActive();
+
+// === Apply URL hash target on load (set by sidepanel clicks before reload) ===
+(function applyHashTarget() {
+  var hash = window.location.hash.replace('#', '');
+  if (!hash) return;
+  var parts = hash.split(',');
+  var screenIdx = parseInt(parts[0], 10);
+  var modalId = parts[1];
+  if (!isNaN(screenIdx) && screenIdx >= 0 && screenIdx < screens.length) {
+    show(screenIdx);
+  }
+  if (modalId) {
+    setTimeout(function() {
+      var m = document.getElementById(modalId);
+      if (m) {
+        m.classList.add('show');
+        if (m.id === 'delayInfoModal') {
+          var sw = document.querySelector('.variant-switcher');
+          if (sw) sw.classList.add('show');
+        }
+      }
+    }, 50);
+  }
+})();
 </script>
 </body>
 </html>
