@@ -2014,19 +2014,6 @@ body {
         </div>
       </div>
 
-      <!-- Cancel confirmation popup (re-added for screen-4 explicit cancel CTA) -->
-      <div class="bk-modal-overlay" id="cancelConfirmPopup" data-modal>
-        <div class="bk-modal-card">
-          <div class="bk-modal-text">
-            <h3 class="bk-modal-title">बुकिंग कैंसिल करने पर ₹100 वापस नहीं मिलेगा।<br>क्या आप फिर भी कैंसिल करना चाहते हैं?</h3>
-          </div>
-          <div class="bk-modal-actions">
-            <button class="bk-modal-cta primary" data-modal-close data-link="8">हाँ, कैंसिल करें</button>
-            <button class="bk-modal-cta secondary" data-modal-close>नहीं, बुकिंग जारी रखे</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Typing field — click input to auto-fill the second message, then click send to trigger the second exchange -->
       <div class="bk-typing" id="screen4Typing">
         <div class="input" data-placeholder="यहाँ पूछें....">यहाँ पूछें....</div>
@@ -2082,7 +2069,7 @@ body {
           <div class="reason-radio"></div>
           <span class="reason-text">नेट लगने में देरी हो रही है</span>
         </div>
-        <div class="reason-option" data-reason data-link="8">
+        <div class="reason-option" data-reason data-open-modal="cancelConfirmPopup">
           <div class="reason-radio"></div>
           <span class="reason-text">अभी जरूरत नहीं है</span>
         </div>
@@ -2349,6 +2336,19 @@ body {
 
     <!-- Hidden sentinel — runtime IIFEs insert new screens before this -->
     <span id="runtimeAnchor" hidden></span>
+
+    <!-- Cancel confirmation popup at screen-area level so it can overlay any screen -->
+    <div class="bk-modal-overlay" id="cancelConfirmPopup" data-modal>
+      <div class="bk-modal-card">
+        <div class="bk-modal-text">
+          <h3 class="bk-modal-title">बुकिंग कैंसिल करने पर ₹100 वापस नहीं मिलेगा।<br>क्या आप फिर भी कैंसिल करना चाहते हैं?</h3>
+        </div>
+        <div class="bk-modal-actions">
+          <button class="bk-modal-cta primary" data-modal-close data-link="8">हाँ, कैंसिल करें</button>
+          <button class="bk-modal-cta secondary" data-modal-close>नहीं, बुकिंग जारी रखे</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
