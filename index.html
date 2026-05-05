@@ -2621,13 +2621,15 @@ function injectCallbackFollowup(opts) {
     msg.className = 'bk-wiom-msg with-tail';
     msg.dataset.callbackFollowup = '1';
     var ctaAttrs = opts.ctaLink ? ' data-link="' + opts.ctaLink + '"' : '';
+    var ctaHtml = opts.ctaText
+      ? '<div class="divider"></div><div class="chat-cta cta-pink"' + ctaAttrs + '><span class="chat-cta-text">' + opts.ctaText + '</span></div>'
+      : '';
     msg.innerHTML = '<div class="bubble">'
       + '<div class="content-box">'
       +   '<p class="text">' + opts.text + '</p>'
       +   '<span class="timestamp">10:15 AM</span>'
       + '</div>'
-      + '<div class="divider"></div>'
-      + '<div class="chat-cta cta-pink"' + ctaAttrs + '><span class="chat-cta-text">' + opts.ctaText + '</span></div>'
+      + ctaHtml
       + '</div>';
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
@@ -2649,9 +2651,7 @@ function triggerAnubhavMessage() {
 }
 function triggerNoPickupMessage() {
   injectCallbackFollowup({
-    text: 'हमने आपको कॉल करने की कोशिश की, लेकिन बात नहीं हो पाई\n\nआप दोबारा कॉल का अनुरोध भेज सकते हैं',
-    ctaText: 'दोबारा कॉल का अनुरोध करें',
-    ctaLink: '16'
+    text: 'हमने आपको कॉल करने की कोशिश की, लेकिन बात नहीं हो पाई\n\nहम कुछ देर मे फिरसे प्रयास करेंगे'
   });
 }
 
@@ -2698,6 +2698,16 @@ function show(idx) {
 
   // Address/reschedule loading auto-transition
   if (screens[current].classList.contains('addr-screen')) startAddressProgress(screens[current]);
+
+  // Cancellation Confirmed is a terminal state — flip the yellow CTA to a non-clickable "Flow ended here"
+  if (screens[current].dataset.label === 'Cancellation Confirmed') {
+    var feb = screens[current].querySelector('.flow-end-btn');
+    if (feb) {
+      feb.textContent = 'Flow ended here';
+      feb.removeAttribute('data-link');
+      feb.style.cursor = 'default';
+    }
+  }
 
   // Sync left-nav highlight
   if (typeof updateNavActive === 'function') updateNavActive();
@@ -2904,6 +2914,14 @@ document.querySelectorAll('[data-callback-outcome]').forEach(function(btn) {
     } else if (outcome === 'no-pickup') {
       setTimeout(triggerNoPickupMessage, 200);
     }
+    // Once the follow-up message lands, flip the bottom yellow CTA to "Flow ended here" (non-clickable)
+    setTimeout(function() {
+      var flowEndBtn = target.querySelector('.flow-end-btn');
+      if (!flowEndBtn) return;
+      flowEndBtn.textContent = 'Flow ended here';
+      flowEndBtn.removeAttribute('data-link');
+      flowEndBtn.style.cursor = 'default';
+    }, 2300);
   });
 });
 
