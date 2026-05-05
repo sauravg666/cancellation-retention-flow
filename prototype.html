@@ -1440,6 +1440,17 @@ body {
 }
 .bk-user-msg .meta svg { width: 12px; height: 12px; color: #008043; }
 
+/* ===== Misclick hint pulse — fires on interactive elements when user taps a dead zone ===== */
+@keyframes click-hint-pulse-anim {
+  0%   { box-shadow: 0 0 0 0 rgba(217, 0, 141, 0.7); }
+  100% { box-shadow: 0 0 0 14px rgba(217, 0, 141, 0); }
+}
+.click-hint-pulse {
+  animation: click-hint-pulse-anim 0.7s ease-out;
+  position: relative;
+  z-index: 5;
+}
+
 </style>
 </head>
 <body>
@@ -1971,13 +1982,54 @@ body {
             <div class="chat-cta cta-pink" data-link="5" data-inject-quote="व्योम से संपर्क करने के लिए धन्यवाद! अगर आपको बुकिंग मे कोई दिक्कत आ रही है या कोई शंका है..."><span class="chat-cta-text">अपनी समस्या बताएं</span></div>
           </div>
         </div>
+
+        <!-- Second exchange: user persists with cancel intent → Wiom shows explicit cancel CTA -->
+        <div class="bk-user-msg" id="userReply2" style="display:none;">
+          <div class="bubble-outer">
+            <div class="reply-content">
+              <p class="reply-text">Nahi, mujhe cancel karna hai</p>
+              <div class="meta">
+                <span>10:16 AM</span>
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 6l3 3 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bk-typing-bubble with-tail" id="wiomTypingDotsB" style="display:none;">
+          <div class="bubble">
+            <div class="dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="bk-wiom-msg with-tail" id="wiomMsgRevealB" style="display:none;">
+          <div class="bubble">
+            <div class="content-box">
+              <p class="text">बुकिंग कैंसिल करने के लिए नीचे "बुकिंग कैंसिल करें" पर टैप करें।
+
+कैंसिल करने के बाद रिफंड / अगला स्टेटस यही दिख जाएगा</p>
+              <span class="timestamp">10:16 AM</span>
+            </div>
+            <div class="divider"></div>
+            <div class="chat-cta cta-pink" data-open-modal="cancelConfirmPopup"><span class="chat-cta-text">बुकिंग कैंसिल करें</span></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Cancel confirmation modal — removed (chat CTA now navigates directly to reasons) -->
+      <!-- Cancel confirmation popup (re-added for screen-4 explicit cancel CTA) -->
+      <div class="bk-modal-overlay" id="cancelConfirmPopup" data-modal>
+        <div class="bk-modal-card">
+          <div class="bk-modal-text">
+            <h3 class="bk-modal-title">बुकिंग कैंसिल करने पर ₹100 वापस नहीं मिलेगा।<br>क्या आप फिर भी कैंसिल करना चाहते हैं?</h3>
+          </div>
+          <div class="bk-modal-actions">
+            <button class="bk-modal-cta primary" data-modal-close data-link="8">हाँ, कैंसिल करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close>नहीं, बुकिंग जारी रखे</button>
+          </div>
+        </div>
+      </div>
 
-      <!-- Typing field (back to empty/disabled) -->
-      <div class="bk-typing" data-link="3">
-        <div class="input">यहाँ पूछें....</div>
+      <!-- Typing field — click input to auto-fill the second message, then click send to trigger the second exchange -->
+      <div class="bk-typing" id="screen4Typing">
+        <div class="input" data-placeholder="यहाँ पूछें....">यहाँ पूछें....</div>
         <button class="send-btn" aria-label="Send">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
         </button>
@@ -2643,6 +2695,7 @@ function show(idx) {
   // runTypingReveal('wiomTypingDots6', 'wiomMsgReveal6'); // disabled with calling feature
   runTypingReveal('wiomTypingDots7', 'wiomMsgReveal7');
 
+
   // Address/reschedule loading auto-transition
   if (screens[current].classList.contains('addr-screen')) startAddressProgress(screens[current]);
 
@@ -2953,6 +3006,82 @@ document.querySelectorAll('[data-reason]').forEach(function(opt) {
     if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'क्या समस्या आ रही है', ta.value.trim());
     // Navigate directly to Cancellation Confirmed
     show(7);
+  });
+})();
+
+// Screen 4: tap input field → auto-fill second message; tap send → trigger second exchange (typing → reveal)
+(function setupScreen4SecondExchange() {
+  var typing = document.getElementById('screen4Typing');
+  if (!typing) return;
+  var input = typing.querySelector('.input');
+  var sendBtn = typing.querySelector('.send-btn');
+  var screen = typing.closest('.screen');
+  var secondMsg = 'Nahi, mujhe cancel karna hai';
+  function fillInput() {
+    input.textContent = secondMsg;
+    typing.classList.add('has-text');
+  }
+  function resetInput() {
+    input.textContent = input.dataset.placeholder || '';
+    typing.classList.remove('has-text');
+  }
+  input.addEventListener('click', function() {
+    if (typing.classList.contains('has-text')) return;
+    fillInput();
+  });
+  sendBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (!typing.classList.contains('has-text')) return;
+    if (typing.dataset.sent === '1') return;
+    typing.dataset.sent = '1';
+    var userMsg = screen.querySelector('#userReply2');
+    var dots = screen.querySelector('#wiomTypingDotsB');
+    var reveal = screen.querySelector('#wiomMsgRevealB');
+    var chat = screen.querySelector('.bk-chat');
+    resetInput();
+    if (userMsg) {
+      userMsg.style.display = '';
+      if (chat) chat.scrollTop = chat.scrollHeight;
+    }
+    setTimeout(function() {
+      if (dots) {
+        dots.style.display = '';
+        if (chat) chat.scrollTop = chat.scrollHeight;
+      }
+      setTimeout(function() {
+        if (dots) dots.style.display = 'none';
+        if (reveal) {
+          reveal.style.display = '';
+          reveal.classList.add('bubble-reveal');
+          if (chat) chat.scrollTop = chat.scrollHeight;
+        }
+      }, 1800);
+    }, 500);
+  });
+})();
+
+// Misclick hint: tapping a dead zone on the phone briefly pulses elements that genuinely have an action wired
+(function setupMisclickHints() {
+  var phone = document.querySelector('.phone-frame');
+  if (!phone) return;
+  // Only elements that actually navigate or trigger something — not decorative buttons / chat bubbles
+  var sel = '[data-link]:not(.disabled), [data-open-modal], [data-modal-close], [data-reason], [data-callback-outcome], [data-submit-reason], [data-show-delay-variant], [data-open-cancel-confirm], #screen4Typing .input, #screen4Typing .send-btn';
+  phone.addEventListener('click', function(e) {
+    if (e.target.closest(sel)) return;
+    if (e.target.matches('[data-modal]')) return; // modal overlay click already closes the modal
+    var openModal = document.querySelector('[data-modal].show');
+    var container = openModal || document.querySelector('.screen.active');
+    if (!container) return;
+    var els = container.querySelectorAll(sel);
+    els.forEach(function(el) {
+      if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
+      el.classList.remove('click-hint-pulse');
+      void el.offsetWidth; // force animation restart
+      el.classList.add('click-hint-pulse');
+    });
+    setTimeout(function() {
+      els.forEach(function(el) { el.classList.remove('click-hint-pulse'); });
+    }, 800);
   });
 })();
 
