@@ -2085,7 +2085,7 @@ body {
           <h3 class="bk-modal-title">आप नेट लगाने का पता आसानी से बदल सकते है, आपकी बुकिंग पूरी तरह सुरक्षित रहेगी</h3>
           <div class="bk-modal-actions">
             <button class="bk-modal-cta primary" data-modal-close data-link="9">पता बदलें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="8">बुकिंग कैंसिल करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="cancelConfirmPopup">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -2118,7 +2118,7 @@ body {
           <h3 class="bk-modal-title">आप अपने हिसाब से नया दिन / समय चुन सकते हैं</h3>
           <div class="bk-modal-actions">
             <button class="bk-modal-cta primary" data-modal-close data-link="12">नया दिन/समय चुनें</button>
-            <button class="bk-modal-cta secondary" data-modal-close data-link="8">बुकिंग कैंसिल करें</button>
+            <button class="bk-modal-cta secondary" data-modal-close data-chain-modal="cancelConfirmPopup">बुकिंग कैंसिल करें</button>
           </div>
         </div>
       </div>
@@ -2579,7 +2579,7 @@ buildTerminalChatScreen('Complaint Registered', '6', 'PLACEHOLDER');
     +   '</div>'
     +   '<div class="callback-cta-list">'
     +     '<button class="bk-modal-cta primary" data-link="17" data-inject-quote="हमारी टीम आपको कॉल करके सब आसान भाषा में समझा देगी">कॉल का अनुरोध भेजें</button>'
-    +     '<button class="bk-modal-cta secondary" data-link="8">बुकिंग  कैंसिल करें </button>'
+    +     '<button class="bk-modal-cta secondary" data-open-modal="cancelConfirmPopup">बुकिंग  कैंसिल करें </button>'
     +   '</div>'
     + '</div>';
   anchor.parentNode.insertBefore(s, anchor);
@@ -3022,8 +3022,11 @@ document.querySelectorAll('[data-reason]').forEach(function(opt) {
     if (modal) modal.classList.remove('show');
     var tgt = injectByLink['8'];
     if (tgt) injectUserReply(document.getElementById(tgt.anchorId), tgt.position, 'क्या समस्या आ रही है', ta.value.trim());
-    // Navigate directly to Cancellation Confirmed
-    show(7);
+    // Open the cancel-confirm popup before actually cancelling
+    setTimeout(function() {
+      var popup = document.getElementById('cancelConfirmPopup');
+      if (popup) popup.classList.add('show');
+    }, 100);
   });
 })();
 
